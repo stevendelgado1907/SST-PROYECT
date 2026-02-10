@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Protego</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <!-- Security: No Cache & Auth Guard -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <script src="assets/js/auth.js"></script>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <h2>Protego</h2>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item active">
+                <a href="dashboard.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>📊</i> Dashboard
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="inventario.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>📦</i> Inventario EPP
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="trabajadores.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>👥</i> Trabajadores
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="usuarios.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>👤</i> Usuarios
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="riesgos.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>⚠️</i> Riesgos
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="epp.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>🛡️</i> EPP
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="arl.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>🏢</i> ARL/EPS/IPS
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="reportes.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>📈</i> Reportes
+                    </button>
+                </a>
+            </li>
+        </ul>
+        </ul>
+        <a href="backend/api/auth/logout.php" class="logout-btn" onclick="localStorage.removeItem('user');">
+            <i>🚪</i> Cerrar Sesión
+        </a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1 id="currentPage">Dashboard Principal</h1>
+                <p id="currentDate"></p>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">CA</div>
+                <div class="user-details">
+                    <h3 id="userName">Usuario</h3>
+                    <span class="role-badge admin" id="userRole">ROL</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-content active" id="dashboard">
+            <div style="margin-bottom: 30px;">
+                <h1 style="color: var(--primary-dark); font-size: 2rem;">¡Bienvenido, <span id="welcomeName"
+                        style="color: var(--primary);">Usuario</span>!</h1>
+                <p style="color: var(--text-secondary);">Sistema de Gestión de Seguridad y Salud en el Trabajo - Todo
+                    bajo control</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalWorkers">0</div>
+                    <div class="stat-title">Trabajadores Activos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalEpp">0</div>
+                    <div class="stat-title">EPP Disponibles</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalRisks">0</div>
+                    <div class="stat-title">Riesgos Identificados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="expiringSoon">0</div>
+                    <div class="stat-title">EPP por Vencer</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Actividad Reciente</h3>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Actividad</th>
+                                <th>Usuario</th>
+                                <th>Detalle</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentActivity">
+                            <!-- Actividad cargada por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/main.js"></script>
+</body>
+
+</html>

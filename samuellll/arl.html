@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entidades de Salud - Protego</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <script src="assets/js/auth.js"></script>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <h2>Protego</h2>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="dashboard.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>📊</i> Dashboard
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="inventario.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>📦</i> Inventario EPP
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="trabajadores.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>👥</i> Trabajadores
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="usuarios.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>👤</i> Usuarios
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="riesgos.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>⚠️</i> Riesgos
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="epp.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>🛡️</i> EPP
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item active">
+                <a href="arl.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>🏢</i> ARL/EPS/IPS
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="reportes.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>📈</i> Reportes
+                    </button>
+                </a>
+            </li>
+        </ul>
+        </ul>
+        <a href="backend/api/auth/logout.php" class="logout-btn" onclick="localStorage.removeItem('user');">
+            <i>🚪</i> Cerrar Sesión
+        </a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1 id="currentPage">Entidades de Salud</h1>
+                <p id="currentDate"></p>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">CA</div>
+                <div class="user-details">
+                    <h3 id="userName">Usuario</h3>
+                    <span class="role-badge admin" id="userRole">ROL</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ARL/EPS/IPS Content -->
+        <div class="dashboard-content active" id="arl">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Entidades de Salud</h3>
+                </div>
+                <div class="form-row">
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h4>ARL Registradas</h4>
+                            <button class="btn btn-primary btn-sm" onclick="prepareAddArl()">➕ Nueva ARL</button>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>NIT</th>
+                                        <th>Teléfono</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="arlTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h4>EPS Registradas</h4>
+                            <button class="btn btn-primary btn-sm" onclick="prepareAddEps()">➕ Nueva EPS</button>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Dirección</th>
+                                        <th>Teléfono</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="epsTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h4>IPS Registradas</h4>
+                            <button class="btn btn-primary btn-sm" onclick="prepareAddIps()">➕ Nueva IPS</button>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Dirección</th>
+                                        <th>Teléfono</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ipsTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal ARL -->
+    <div class="modal" id="arlModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="arlModalTitle">Nueva ARL</h3>
+                <button class="close-modal" onclick="closeModal('arlModal')">×</button>
+            </div>
+            <form id="arlForm">
+                <input type="hidden" id="arlId">
+                <div class="form-group"><label>Nombre</label><input type="text" id="arlName" required></div>
+                <div class="form-group"><label>NIT</label><input type="text" id="arlNit" required></div>
+                <div class="form-group"><label>Dirección</label><input type="text" id="arlAddress" required></div>
+                <div class="form-group"><label>Teléfono</label><input type="tel" id="arlPhone" required></div>
+                <div class="form-group"><label>Correo</label><input type="email" id="arlEmail"></div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn" onclick="closeModal('arlModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal EPS -->
+    <div class="modal" id="epsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="epsModalTitle">Nueva EPS</h3>
+                <button class="close-modal" onclick="closeModal('epsModal')">×</button>
+            </div>
+            <form id="epsForm">
+                <input type="hidden" id="epsId">
+                <div class="form-group"><label>Nombre</label><input type="text" id="epsName" required></div>
+                <div class="form-group"><label>Dirección</label><input type="text" id="epsAddress" required></div>
+                <div class="form-group"><label>Teléfono</label><input type="tel" id="epsPhone" required></div>
+                <div class="form-group"><label>Correo</label><input type="email" id="epsEmail"></div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn" onclick="closeModal('epsModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal IPS -->
+    <div class="modal" id="ipsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="ipsModalTitle">Nueva IPS</h3>
+                <button class="close-modal" onclick="closeModal('ipsModal')">×</button>
+            </div>
+            <form id="ipsForm">
+                <input type="hidden" id="ipsId">
+                <div class="form-group"><label>Nombre</label><input type="text" id="ipsName" required></div>
+                <div class="form-group"><label>Dirección</label><input type="text" id="ipsAddress" required></div>
+                <div class="form-group"><label>Teléfono</label><input type="tel" id="ipsPhone" required></div>
+                <div class="form-group"><label>Correo</label><input type="email" id="ipsEmail"></div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn" onclick="closeModal('ipsModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            renderHealthEntities();
+        });
+    </script>
+</body>
+
+</html>

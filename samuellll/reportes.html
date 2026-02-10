@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes - Protego</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <script src="assets/js/auth.js"></script>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <h2>Protego</h2>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="dashboard.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>📊</i> Dashboard
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="inventario.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>📦</i> Inventario EPP
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="trabajadores.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>👥</i> Trabajadores
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="usuarios.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>👤</i> Usuarios
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="riesgos.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>⚠️</i> Riesgos
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="epp.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>🛡️</i> EPP
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="arl.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>🏢</i> ARL/EPS/IPS
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item active">
+                <a href="reportes.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>📈</i> Reportes
+                    </button>
+                </a>
+            </li>
+        </ul>
+        </ul>
+        <a href="backend/api/auth/logout.php" class="logout-btn" onclick="localStorage.removeItem('user');">
+            <i>🚪</i> Cerrar Sesión
+        </a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1 id="currentPage">Reportes del Sistema</h1>
+                <p id="currentDate"></p>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">CA</div>
+                <div class="user-details">
+                    <h3 id="userName">Usuario</h3>
+                    <span class="role-badge admin" id="userRole">ROL</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reportes Content -->
+        <div class="dashboard-content active" id="reportes">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Reportes del Sistema</h3>
+                    <div>
+                        <button class="btn btn-success" onclick="generateReport('workers')">📋 Trabajadores</button>
+                        <button class="btn btn-success" onclick="generateReport('inventory')">📦 Inventario</button>
+                        <button class="btn btn-success" onclick="generateReport('risks')">⚠️ Riesgos</button>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card" onclick="viewReport('assignedEpp')">
+                        <div class="stat-number" id="assignedEppCount">0</div>
+                        <div class="stat-title">EPP Asignados</div>
+                    </div>
+                    <div class="stat-card" onclick="viewReport('expiredEpp')">
+                        <div class="stat-number" id="expiredEppCount">0</div>
+                        <div class="stat-title">EPP Vencidos</div>
+                    </div>
+                    <div class="stat-card" onclick="viewReport('highRisks')">
+                        <div class="stat-number" id="highRisksCount">0</div>
+                        <div class="stat-title">Riesgos Altos</div>
+                    </div>
+                    <div class="stat-card" onclick="viewReport('medicalExams')">
+                        <div class="stat-number" id="medicalExamsCount">0</div>
+                        <div class="stat-title">Exámenes Médicos</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/main.js"></script>
+</body>
+
+</html>

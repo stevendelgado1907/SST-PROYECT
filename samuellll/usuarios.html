@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios - Protego</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <script src="assets/js/auth.js"></script>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <h2>Protego</h2>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="dashboard.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>📊</i> Dashboard
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="inventario.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>📦</i> Inventario EPP
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="trabajadores.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>👥</i> Trabajadores
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item active">
+                <a href="usuarios.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>👤</i> Usuarios
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="riesgos.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>⚠️</i> Riesgos
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="epp.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>🛡️</i> EPP
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="arl.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>🏢</i> ARL/EPS/IPS
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="reportes.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>📈</i> Reportes
+                    </button>
+                </a>
+            </li>
+        </ul>
+        </ul>
+        <a href="backend/api/auth/logout.php" class="logout-btn" onclick="localStorage.removeItem('user');">
+            <i>🚪</i> Cerrar Sesión
+        </a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1 id="currentPage">Gestión de Usuarios</h1>
+                <p id="currentDate"></p>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">CA</div>
+                <div class="user-details">
+                    <h3 id="userName">Usuario</h3>
+                    <span class="role-badge admin" id="userRole">ROL</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Usuarios Content -->
+        <div class="dashboard-content active" id="usuarios">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Gestión de Usuarios</h3>
+                    <button class="btn btn-primary" id="addUserBtn" onclick="prepareAddUser()">➕ Nuevo
+                        Usuario</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Correo</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                                <th>Último Acceso</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTable">
+                            <!-- Datos cargados por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Agregar Usuario -->
+    <div class="modal" id="addUserModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Agregar Nuevo Usuario</h3>
+                <button class="close-modal" onclick="closeModal('addUserModal')">×</button>
+            </div>
+            <form id="addUserForm">
+                <input type="hidden" id="userId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" id="userNameInput" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Apellido</label>
+                        <input type="text" id="userLastNameInput" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="userEmailInput" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        <input type="password" id="userPasswordInput" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirmar Contraseña</label>
+                        <input type="password" id="userPasswordConfirm" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Rol</label>
+                    <select id="userRoleSelect" required>
+                        <option value="1">ADMINISTRADOR</option>
+                        <option value="2">SUPERVISOR</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Estado</label>
+                    <select id="userStatusSelect">
+                        <option value="ACTIVO">ACTIVO</option>
+                        <option value="INACTIVO">INACTIVO</option>
+                    </select>
+                </div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn" onclick="closeModal('addUserModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            renderUsersTable();
+        });
+    </script>
+</body>
+
+</html>

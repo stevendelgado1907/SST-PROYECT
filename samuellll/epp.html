@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión EPP - Protego</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <script src="assets/js/auth.js"></script>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <h2>Protego</h2>
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="dashboard.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>📊</i> Dashboard
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="inventario.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>📦</i> Inventario EPP
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="trabajadores.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>👥</i> Trabajadores
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="usuarios.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>👤</i> Usuarios
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="riesgos.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>⚠️</i> Riesgos
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item active">
+                <a href="epp.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>🛡️</i> EPP
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="arl.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>🏢</i> ARL/EPS/IPS
+                    </button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="reportes.html" class="nav-link">
+                    <button class="nav-btn">
+                        <i>📈</i> Reportes
+                    </button>
+                </a>
+            </li>
+        </ul>
+        </ul>
+        <a href="backend/api/auth/logout.php" class="logout-btn" onclick="localStorage.removeItem('user');">
+            <i>🚪</i> Cerrar Sesión
+        </a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1 id="currentPage">Gestión de Equipos EPP</h1>
+                <p id="currentDate"></p>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">CA</div>
+                <div class="user-details">
+                    <h3 id="userName">Usuario</h3>
+                    <span class="role-badge admin" id="userRole">ROL</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- EPP Content -->
+        <!-- EPP Management -->
+        <div class="dashboard-content active" id="epp">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Gestión de Equipos EPP</h3>
+                    <button class="btn btn-primary" onclick="prepareAddEpp()">➕ Nuevo Equipo</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Referencia</th>
+                                <th>Marca</th>
+                                <th>Categoría</th>
+                                <th>Fecha Vencimiento</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="eppTable">
+                            <!-- Datos cargados por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Agregar EPP Equipment (Placeholder) -->
+    <div class="modal" id="addEquipmentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Agregar Nuevo Equipo</h3>
+                <button class="close-modal" onclick="closeModal('addEquipmentModal')">×</button>
+            </div>
+            <form id="addEquipmentForm">
+                <input type="hidden" id="eppId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre EPP</label>
+                        <input type="text" id="eppName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo</label>
+                        <input type="text" id="eppType" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Marca</label>
+                        <select id="eppBrand" required>
+                            <option value="">Seleccione Marca</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Categoría</label>
+                        <select id="eppCategory" required>
+                            <option value="">Seleccione Categoría</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Talla</label>
+                        <input type="text" id="eppSize" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Referencia</label>
+                        <input type="text" id="eppReference" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fabricante</label>
+                        <input type="text" id="eppManufacturer" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Serial</label>
+                        <input type="text" id="eppSerial" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha Fabricación</label>
+                        <input type="date" id="eppFabDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha Vencimiento</label>
+                        <input type="date" id="eppExpDate" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha Compra</label>
+                        <input type="date" id="eppBuyDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Vida Útil (Meses)</label>
+                        <input type="number" id="eppLife" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="eppDescription" rows="3" required></textarea>
+                </div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn" onclick="closeModal('addEquipmentModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Equipo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            renderEppTable();
+        });
+    </script>
+</body>
+
+</html>

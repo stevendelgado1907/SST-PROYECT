@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protego - Iniciar Sesión</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+
+<body class="login-body">
+    <div class="login-container">
+        <div class="logo">
+            <h1 style="color: #ffffff">🔐 Protego</h1>
+            <p style="color: #94a3b8">Sistema de Gestión SST</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Correo Electrónico</label>
+                <input type="email" id="email" name="email" class="login-input" required
+                    placeholder="Ingrese su correo">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" name="password" class="login-input" required
+                    placeholder="Ingrese su contraseña">
+            </div>
+
+            <div id="errorMessage" class="login-error">
+                Credenciales incorrectas. Intente nuevamente.
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-login" style="width: 100%; margin-top: 20px;">Iniciar
+                Sesión</button>
+        </form>
+
+        <div class="back-link">
+            <a href="../index.html">← Volver al inicio</a>
+        </div>
+
+
+
+    </div>
+
+    <!-- Script externo para controlar el login -->
+    <script src="../assets/js/login.js"></script>
+    <script src="../assets/js/cookies.js"></script>
+</body>
+
+</html>

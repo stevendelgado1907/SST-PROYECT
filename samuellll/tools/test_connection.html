@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Prueba de Conexión PDO Basic</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Prueba de Conexión a Base de Datos</h1>
+    <p>Host: 10.5.213.111 | DB: db_protego</p>
+
+    <button onclick="testConnection()">Probar Conexión</button>
+
+    <div id="result"></div>
+
+    <script>
+        async function testConnection() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = "Conectando...";
+            resultDiv.className = "";
+
+            try {
+                const response = await fetch('test_connection.php');
+                const data = await response.json();
+
+                resultDiv.textContent = data.message;
+                resultDiv.className = data.status === 'success' ? 'success' : 'error';
+
+            } catch (error) {
+                resultDiv.textContent = "Error de red o JSON inválido: " + error;
+                resultDiv.className = "error";
+            }
+        }
+    </script>
+</body>
+
+</html>
