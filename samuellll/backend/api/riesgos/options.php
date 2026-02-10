@@ -3,12 +3,12 @@
 
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET");
-header("Access-Control-Allow-Origin: *"); // Adjust for production
+header("Access-Control-Allow-Origin: *"); // Ajustar para producción
 
 require_once '../../config/Database.php';
 require_once '../../config/JWT.php';
 
-// Verification (Simplified for now, can be extracted)
+// Verificación (Simplificada por ahora, puede ser extraída)
 if (!isset($_COOKIE['auth_token'])) {
     http_response_code(401);
     echo json_encode(["message" => "No autorizado"]);
@@ -19,19 +19,19 @@ try {
     $database = new Database();
     $db = $database->getConnection();
 
-    // Get Areas
+    // Obtener Áreas
     $queryAreas = "SELECT id, nombre FROM areas WHERE activo = TRUE ORDER BY nombre";
     $stmtAreas = $db->prepare($queryAreas);
     $stmtAreas->execute();
     $areas = $stmtAreas->fetchAll(PDO::FETCH_ASSOC);
 
-    // Get Processes
+    // Obtener Procesos
     $queryProcess = "SELECT id, area_id, nombre FROM procesos WHERE activo = TRUE ORDER BY nombre";
     $stmtProcess = $db->prepare($queryProcess);
     $stmtProcess->execute();
     $processes = $stmtProcess->fetchAll(PDO::FETCH_ASSOC);
 
-    // Get Risk Types
+    // Obtener Tipos de Riesgo
     $queryTypes = "SELECT id, nombre, codigo, color FROM tipos_riesgo WHERE activo = TRUE ORDER BY nombre";
     $stmtTypes = $db->prepare($queryTypes);
     $stmtTypes->execute();

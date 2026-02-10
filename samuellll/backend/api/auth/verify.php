@@ -14,19 +14,20 @@ if (isset($_COOKIE['auth_token'])) {
     $payload = JWT::decode($jwt);
 
     if ($payload) {
-        // Token valid
+        // Token válido
+
         echo json_encode([
             "status" => "valid",
             "user" => $payload['data']
         ]);
         http_response_code(200);
     } else {
-        // Token invalid or tamperred
+        // Token inválido o manipulado
         http_response_code(401);
         echo json_encode(["status" => "invalid", "message" => "Token inválido"]);
     }
 } else {
-    // No cookie found
+    // No se encontró la cookie
     http_response_code(401);
     echo json_encode(["status" => "invalid", "message" => "No hay sesión activa"]);
 }

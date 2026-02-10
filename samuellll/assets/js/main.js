@@ -1,5 +1,5 @@
 
-// Globals for EPP and Inventory
+// Globales para EPP e Inventario
 let eppList = [];
 let invList = [];
 let workers = [];
@@ -10,12 +10,12 @@ let epsList = [];
 let ipsList = [];
 let currentUser = JSON.parse(localStorage.getItem('user'));
 
-// Modal Helpers
+// Ayudantes para Modales
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
-        modal.style.display = 'flex'; // Enforce visibility
-        // Small timeout to allow display change to register before opacity transition
+        modal.style.display = 'flex'; // Forzar visibilidad
+        // Pequeño tiempo de espera para permitir que el cambio de pantalla se registre antes de la transición de opacidad
         setTimeout(() => {
             modal.classList.add('active');
         }, 10);
@@ -26,15 +26,15 @@ function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.classList.remove('active');
-        // Wait for transition to finish before hiding
+        // Esperar a que la transición termine antes de ocultar
         setTimeout(() => {
             modal.style.display = 'none';
         }, 300);
     }
 }
 
-// Window click to close modals
-// Window click to close modals
+// Clic en la ventana para cerrar modales
+// Clic en la ventana para cerrar modales
 window.onclick = function (event) {
     if (event.target.classList.contains('modal')) {
         closeModal(event.target.id);
@@ -128,10 +128,10 @@ function checkCookieConsent() {
 }
 
 function setupEventListeners() {
-    // Logout logic handled by anchor tag in HTML
+    // La lógica de cierre de sesión es manejada por la etiqueta de anclaje en HTML
 
     // Formulario agregar usuario
-    // Expose for global use
+    // Exponer para uso global
     window.addNewWorker = addNewWorker;
 
     if (addUserForm) {
@@ -236,7 +236,7 @@ function getFetchOpts(method, body) {
 }
 
 // -------------------------------------------------------------
-// RENDER TABLES (API)
+// RENDERIZAR TABLAS (API)
 // -------------------------------------------------------------
 
 async function renderUsersTable() {
@@ -254,7 +254,7 @@ async function renderUsersTable() {
 
         const data = await response.json();
         const usersData = Array.isArray(data) ? data : [];
-        usersList = usersData; // Global for edit
+        usersList = usersData; // Global para edición
 
         tbody.innerHTML = '';
         if (usersData.length === 0) {
@@ -311,7 +311,7 @@ async function renderEppTable() {
 
         eppList.forEach(item => {
             const row = document.createElement('tr');
-            // Use specific class for status coloring
+            // Usar clase específica para el coloreado de estado
             const statusClass = item.status === 'DISPONIBLE' ? 'status-active' : 'status-inactive';
 
             row.innerHTML = `
@@ -352,7 +352,7 @@ async function renderWorkersTable() {
 
         const data = await response.json();
         const workersData = Array.isArray(data) ? data : [];
-        workers = workersData; // Update global for stats
+        workers = workersData; // Actualizar global para estadísticas
 
         tbody.innerHTML = '';
         if (workersData.length === 0) {
@@ -379,7 +379,7 @@ async function renderWorkersTable() {
             tbody.appendChild(row);
         });
 
-        // Update stats counter
+        // Actualizar contador de estadísticas
         const totalWorkers = document.getElementById('totalWorkers');
         if (totalWorkers) totalWorkers.textContent = workersData.length;
 
@@ -444,14 +444,14 @@ async function renderRisksTable() {
     tbody.innerHTML = '<tr><td colspan="8">Cargando riesgos...</td></tr>';
 
     try {
-        // Add timestamp to prevent caching
+        // Añadir marca de tiempo para evitar el almacenamiento en caché (caching)
         const response = await fetch(`backend/api/risks/read.php?t=${new Date().getTime()}`, { headers: getAuthHeaders() });
         if (response.status === 401) { window.location.href = 'login.html'; return; }
 
         const data = await response.json();
         risks = Array.isArray(data) ? data : [];
 
-        // Update Dashboard (Matrix & Stats)
+        // Actualizar Dashboard (Matriz y Estadísticas)
         updateRiskDashboard(risks);
 
         tbody.innerHTML = '';
@@ -463,9 +463,9 @@ async function renderRisksTable() {
         risks.forEach(risk => {
             const row = document.createElement('tr');
 
-            // Percentage fallback
+            // Fallback de porcentaje
             let percent = risk.percentage;
-            // Normalize for fallback calc
+            // Normalizar para el cálculo de fallback
             const pUpper = (risk.probability || '').trim().toUpperCase();
             const sUpper = (risk.severity || '').trim().toUpperCase();
 
@@ -475,10 +475,10 @@ async function renderRisksTable() {
                 percent = Math.round(((probVal * sevVal) / 300) * 100);
             }
 
-            // Determine color
-            let barColor = '#10b981'; // Green
-            if (percent > 15) barColor = '#f59e0b'; // Yellow/Orange
-            if (percent > 40) barColor = '#ef4444'; // Red
+            // Determinar color
+            let barColor = '#10b981'; // Verde
+            if (percent > 15) barColor = '#f59e0b'; // Amarillo/Naranja
+            if (percent > 40) barColor = '#ef4444'; // Rojo
 
             row.innerHTML = `
                 <td>${risk.id}</td>
@@ -509,13 +509,13 @@ async function renderRisksTable() {
     }
 }
 
-// Helper for badge colors
+// Ayudante para colores de insignias (badges)
 function getRiskLevelClass(level) {
     switch (level) {
-        case 'BAJO': return 'status-active'; // Greenish
-        case 'MEDIO': return 'status-warning'; // Yellowish 
-        case 'ALTO': return 'status-inactive'; // Reddish
-        case 'MUY ALTO': return 'status-inactive'; // Reddish
+        case 'BAJO': return 'status-active'; // Verdoso
+        case 'MEDIO': return 'status-warning'; // Amarillento 
+        case 'ALTO': return 'status-inactive'; // Rojizo
+        case 'MUY ALTO': return 'status-inactive'; // Rojizo
         default: return '';
     }
 }
@@ -557,11 +557,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // -------------------------------------------------------------
-// RISK DASHBOARD LOGIC (Matrix & Stats)
+// LÓGICA DEL DASHBOARD DE RIESGOS (Matriz y Estadísticas)
 // -------------------------------------------------------------
 
 function updateRiskDashboard(riskData) {
-    // 1. Update Statistics Cards (Case insensitive filtering)
+    // 1. Actualizar Tarjetas de Estadísticas (Filtrado insensible a mayúsculas/minúsculas)
     const total = riskData.length;
     const high = riskData.filter(r => {
         const l = (r.level || '').toUpperCase();
@@ -575,12 +575,12 @@ function updateRiskDashboard(riskData) {
     if (document.getElementById('mediumRisksCountStats')) document.getElementById('mediumRisksCountStats').textContent = medium;
     if (document.getElementById('lowRisksCountStats')) document.getElementById('lowRisksCountStats').textContent = low;
 
-    // Calculate Average Risk %
+    // Calcular % de Riesgo Promedio
     let avgPercent = 0;
     if (total > 0) {
         const sumPercent = riskData.reduce((acc, curr) => {
             let p = curr.percentage;
-            // Normalize for fallback calc
+            // Normalizar para el cálculo de fallback
             const pUpper = (curr.probability || '').toUpperCase();
             const sUpper = (curr.severity || '').toUpperCase();
 
@@ -595,18 +595,18 @@ function updateRiskDashboard(riskData) {
     }
     if (document.getElementById('avgRiskStats')) document.getElementById('avgRiskStats').textContent = avgPercent + '%';
 
-    // 2. Update Matrix
+    // 2. Actualizar Matriz
     document.querySelectorAll('.matrix-cell').forEach(cell => {
         cell.innerHTML = '';
     });
 
     riskData.forEach(risk => {
-        // Ensure values match ID format (e.g., MUY_GRAVE)
+        // Asegurar que los valores coincidan con el formato del ID (ej., MUY_GRAVE)
         let prob = (risk.probability || '').trim().toUpperCase();
         let sev = (risk.severity || '').trim().toUpperCase();
 
-        // Normalize specific values
-        sev = sev.replace(/\s+/g, '_'); // Replace spaces within the text with underscore
+        // Normalizar valores específicos
+        sev = sev.replace(/\s+/g, '_'); // Reemplazar espacios dentro del texto con guion bajo
 
         const cellId = `cell-${prob}-${sev}`;
         const cell = document.getElementById(cellId);
@@ -627,9 +627,9 @@ function updateRiskDashboard(riskData) {
 window.prepareAddRisk = function () {
     document.getElementById('addRiskForm').reset();
     document.getElementById('riskId').value = '';
-    // Reset/Recalc level
+    // Reiniciar/Recalcular nivel
     calculateRiskLevel();
-    // Disable manual editing of level?
+    // ¿Deshabilitar edición manual del nivel?
     document.getElementById('riskLevel').style.pointerEvents = 'none';
     document.getElementById('riskLevel').style.backgroundColor = '#f3f4f6';
     openModal('addRiskModal');
@@ -645,7 +645,7 @@ window.editRisk = function (id) {
     document.getElementById('riskProb').value = risk.probability;
     document.getElementById('riskSev').value = risk.severity;
 
-    // Auto-set level based on current prob/sev
+    // Auto-establecer nivel basado en prob/sev actual
     calculateRiskLevel();
     document.getElementById('riskLevel').style.pointerEvents = 'none';
     document.getElementById('riskLevel').style.backgroundColor = '#f3f4f6';
@@ -656,7 +656,7 @@ window.editRisk = function (id) {
     openModal('addRiskModal');
 };
 
-// Save Risk (Create/Update)
+// Guardar Riesgo (Crear/Actualizar)
 document.getElementById('addRiskForm')?.addEventListener('submit', async function (e) {
     e.preventDefault();
 
@@ -744,7 +744,7 @@ window.editRisk = function (id) {
 };
 
 // -------------------------------------------------------------
-// HEALTH ENTITIES (ARL, EPS, IPS)
+// ENTIDADES DE SALUD (ARL, EPS, IPS)
 // -------------------------------------------------------------
 
 async function renderHealthEntities() {
@@ -1000,7 +1000,7 @@ window.deleteIps = async function (id) {
 };
 
 // -------------------------------------------------------------
-// ADD FUNCTIONS (API)
+// FUNCIONES DE ADICIÓN (API)
 // -------------------------------------------------------------
 
 async function addNewUser() {
@@ -1099,12 +1099,12 @@ async function addNewWorker() {
 
 
 // -------------------------------------------------------------------------
-// EPP CRUD
+// CRUD DE EPP
 // -------------------------------------------------------------------------
 
 async function loadBrandsAndCategories() {
     try {
-        // Load Brands
+        // Cargar Marcas
         const brandRes = await fetch('backend/api/brands/read.php', { headers: getAuthHeaders() });
         const brands = await brandRes.json();
         const brandSelect = document.getElementById('eppBrand');
@@ -1115,7 +1115,7 @@ async function loadBrandsAndCategories() {
             });
         }
 
-        // Load Categories
+        // Cargar Categorías
         const catRes = await fetch('backend/api/categories/read.php', { headers: getAuthHeaders() });
         const cats = await catRes.json();
         const catSelect = document.getElementById('eppCategory');
@@ -1236,7 +1236,7 @@ window.deleteEpp = async function (id) {
 };
 
 // -------------------------------------------------------------------------
-// INVENTORY CRUD
+// CRUD DE INVENTARIO
 // -------------------------------------------------------------------------
 
 window.prepareAddInventory = async function () {
@@ -1337,7 +1337,7 @@ window.deleteInventory = async function (id) {
 };
 
 // -------------------------------------------------------------------------
-// USERS CRUD
+// CRUD DE USUARIOS
 // -------------------------------------------------------------------------
 
 window.prepareAddUser = function () {
@@ -1404,7 +1404,7 @@ async function saveUser() {
     }
 }
 
-// Replace old addNewUser with saveUser hook
+// Reemplazar el antiguo addNewUser con el gancho (hook) saveUser
 window.addNewUser = saveUser;
 
 const addUserForm = document.getElementById('addUserForm');
@@ -1445,7 +1445,7 @@ async function deleteUser(userId) {
 
             if (response.ok) {
                 alert('Usuario eliminado exitosamente');
-                renderUsersTable(); // Reload table from DB
+                renderUsersTable(); // Recargar tabla desde la BD
             } else {
                 const err = await response.json();
                 alert('Error al eliminar: ' + (err.message || 'Error desconocido'));
@@ -1458,7 +1458,7 @@ async function deleteUser(userId) {
 }
 
 // -------------------------------------------------------------------------
-// WORKERS CRUD
+// CRUD DE TRABAJADORES
 // -------------------------------------------------------------------------
 
 window.prepareAddWorker = async function () {
@@ -1543,7 +1543,7 @@ async function saveWorker() {
     }
 }
 
-// Replace old addNewWorker
+// Reemplazar el antiguo addNewWorker
 window.addNewWorker = saveWorker;
 
 const addWorkerForm = document.getElementById('addWorkerForm');

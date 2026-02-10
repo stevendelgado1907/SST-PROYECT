@@ -1,11 +1,11 @@
 <?php
-// index.php - Entry point
+// index.php - Punto de entrada
 
-// Check if index.html exists and include it
+// Comprobar si index.html existe e incluirlo
 if (file_exists('index.html')) {
     include 'index.html';
 } else {
-    // Fallback if index.html is missing
+    // Alternativa si falta index.html
     header("Location: pages/login.html");
     exit();
 }

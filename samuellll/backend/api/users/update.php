@@ -25,7 +25,7 @@ if (
     !empty($data->status)
 ) {
     try {
-        // Password update is optional
+        // La actualización de contraseña es opcional
         $passwordSet = !empty($data->password);
         
         $query = "UPDATE tab_usuarios
@@ -40,7 +40,7 @@ if (
 
         $stmt = $db->prepare($query);
 
-        // Sanitize
+        // Sanear datos
         $data->id = htmlspecialchars(strip_tags($data->id));
         $data->name = htmlspecialchars(strip_tags($data->name));
         $data->lastName = htmlspecialchars(strip_tags($data->lastName));
@@ -48,7 +48,7 @@ if (
         $data->role = htmlspecialchars(strip_tags($data->role));
         $data->status = htmlspecialchars(strip_tags($data->status));
 
-        // Bind
+        // Vincular parámetros (Bind)
         $stmt->bindParam(":id", $data->id);
         $stmt->bindParam(":name", $data->name);
         $stmt->bindParam(":lastname", $data->lastName);

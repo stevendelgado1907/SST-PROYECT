@@ -13,7 +13,7 @@ $data = json_decode(file_get_contents("php://input"));
 
 if (!empty($data->email) && !empty($data->password)) {
     
-    // Query aligned with MODELO SST.sql
+    // Consulta alineada con MODELO SST.sql
     $query = "SELECT 
                 u.id_usuario, 
                 u.nombre_usuario, 
@@ -32,39 +32,39 @@ if (!empty($data->email) && !empty($data->password)) {
     
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Verify password: Enforce Hash verification
+    // Verificar contraseña: Forzar verificación de Hash
     if ($user && password_verify($data->password, $user['pass_hash'])) {
         
-        // 1. Get Secret
+        // 1. Obtener Secreto
         $secret = Config::get('JWT_SECRET');
         
         if (!$secret) {
-             error_log("CRITICAL: JWT_SECRET not set in environment.");
-             // In production, we should exit here. For dev/demo, we might still fallback but with a warning.
-             // For this security task, we will enforce it or use a strong hardcoded one ONLY if we can't load env (which Config class does).
-             // Given Config.php implementation, let's use a fallback but log it heavily.
+             error_log("CRÍTICO: JWT_SECRET no establecido en el entorno.");
+             // En producción, deberíamos salir aquí. Para dev/demo, aún podríamos usar una alternativa pero con una advertencia.
+             // Para esta tarea de seguridad, lo forzaremos o usaremos uno fuerte predefinido SOLO si no podemos cargar el entorno (lo cual hace la clase Config).
+             // Dada la implementación de Config.php, usemos una alternativa pero registrándola fuertemente.
              $secret = 'fallback_secret_key_change_in_production'; 
         }
 
         JWT::setSecret($secret);
 
-        // 2. Create Payload
+        // 2. Crear Payload
         $payload = [
             "iss" => "sstpro.com",
             "iat" => time(),
-            "exp" => time() + (60 * 60 * 24), // 24 hours
+            "exp" => time() + (60 * 60 * 24), // 24 horas
             "data" => [
                 "id" => $user['id_usuario'],
                 "rol" => $user['nombre_rol']
             ]
         ];
 
-        // 3. Generate Token
+        // 3. Generar Token
         $jwt = JWT::encode($payload);
 
-        // 4. Set HttpOnly Cookie
-        // name, value, expire, path, domain, secure, httponly
-        setcookie("auth_token", $jwt, time() + (60 * 60 * 24), "/", "", false, true); // Secure=false for localhost testing
+        // 4. Establecer Cookie HttpOnly
+        // nombre, valor, expiración, ruta, dominio, seguro, httponly
+        setcookie("auth_token", $jwt, time() + (60 * 60 * 24), "/", "", false, true); // Secure=false para pruebas en localhost
 
         echo json_encode([
             "status" => "success",

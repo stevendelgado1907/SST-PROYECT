@@ -12,7 +12,7 @@ $database = new Database();
 $db = $database->getConnection();
 
 try {
-    // Query aligned with MODELO SST.sql and main.js expectations
+    // Consulta alineada con MODELO SST.sql y las expectativas de main.js
     $query = "SELECT 
                 u.id_usuario, 
                 u.nombre_usuario, 
@@ -32,15 +32,15 @@ try {
     $users = [];
     
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        // Map to format expected by main.js
+        // Mapear al formato esperado por main.js
         $users[] = [
             "id" => $row['id_usuario'],
-            "name" => $row['nombre_usuario'], // First name
+            "name" => $row['nombre_usuario'], // Primer nombre
             "lastName" => $row['apellido_usuario'],
-            "fullName" => $row['nombre_usuario'] . ' ' . $row['apellido_usuario'], // For display
+            "fullName" => $row['nombre_usuario'] . ' ' . $row['apellido_usuario'], // Para mostrar
             "email" => $row['correo_usuario'],
             "role" => $row['nombre_rol'],
-            "role_id" => $row['id_rol'], // For edit select
+            "role_id" => $row['id_rol'], // Para el selector de edición
             "status" => $row['estado_usuario'],
             "lastAccess" => $row['ultimo_acceso']
         ];

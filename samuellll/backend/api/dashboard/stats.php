@@ -15,8 +15,8 @@ $db = $database->getConnection();
 try {
     $stats = [];
 
-    // 1. Total Workers (Active)
-    // Assuming active workers have null retirement date or future retirement date
+    // 1. Trabajadores Totales (Activos)
+    // Asumiendo que los trabajadores activos tienen fecha de retiro nula o una fecha de retiro futura
     $queryWorkers = "SELECT COUNT(*) as total FROM tab_trabajadores WHERE fecha_retiro_trabajador IS NULL OR fecha_retiro_trabajador > CURRENT_DATE";
     $stmtWorkers = $db->prepare($queryWorkers);
     if ($stmtWorkers->execute()) {
@@ -25,8 +25,8 @@ try {
         $stats['totalWorkers'] = 0;
     }
 
-    // 2. Total EPP in Stock (Sum of all stock)
-    // Using COALESCE to return 0 if table is empty
+    // 2. Total de EPP en Stock (Suma de todo el stock)
+    // Usando COALESCE para devolver 0 si la tabla está vacía
     $queryEpp = "SELECT COALESCE(SUM(stock_actual), 0) as total FROM inventario_epp";
     $stmtEpp = $db->prepare($queryEpp);
     if ($stmtEpp->execute()) {
@@ -35,7 +35,7 @@ try {
         $stats['totalEpp'] = 0;
     }
 
-    // 3. Total Risks (from new Matrix)
+    // 3. Riesgos Totales (de la nueva Matriz)
     $queryRisks = "SELECT COUNT(*) as total FROM matriz_riesgos";
     $stmtRisks = $db->prepare($queryRisks);
     if ($stmtRisks->execute()) {
@@ -44,15 +44,15 @@ try {
         $stats['totalRisks'] = 0;
     }
 
-    // 4. EPP Expiring Soon (Next 30 days)
-    // Checking tab_epp for expiration dates
+    // 4. EPP por Vencer Pronto (Próximos 30 días)
+    // Buscando fechas de vencimiento en tab_epp
     $queryExpiring = "SELECT COUNT(*) as total FROM tab_epp WHERE fecha_vencimiento_epp BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '30 day') AND estado_epp = 'DISPONIBLE'";
-    // Note: Postgres uses INTERVAL '30 day', MySQL uses INTERVAL 30 DAY. 
-    // The previous code suggests this is likely MySQL/Generic.
-    // 'Database.php' DSN shows 'pgsql', so valid Postgres syntax: CURRENT_DATE + INTERVAL '30 day'
-    // Let's check Database.php again. It showed pgsql.
-    // Wait, DSN said "pgsql:host=...". So it IS PostgreSQL.
-    // Postgres syntax: WHERE fecha_vencimiento_epp BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 day'
+    // Nota: Postgres usa INTERVAL '30 day', MySQL usa INTERVAL 30 DAY. 
+    // El código anterior sugiere que esto es probablemente MySQL/Genérico.
+    // DSN de 'Database.php' muestra 'pgsql', por lo que la sintaxis válida de Postgres es: CURRENT_DATE + INTERVAL '30 day'
+    // Revisemos de nuevo Database.php. Mostraba pgsql.
+    // Espera, el DSN decía "pgsql:host=...". Así que ES PostgreSQL.
+    // Sintaxis de Postgres: WHERE fecha_vencimiento_epp BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 day'
     
     $stmtExpiring = $db->prepare($queryExpiring);
     if ($stmtExpiring->execute()) {

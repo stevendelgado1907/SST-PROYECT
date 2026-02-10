@@ -20,17 +20,17 @@ if (
     !empty($data->role)
 ) {
     try {
-        // 1. Calculate next ID (since schema implies simple integer PK without explicit SERIAL/AUTO_INCREMENT info)
+        // 1. Calcular el siguiente ID (ya que el esquema implica PK entera simple sin información explícita de SERIAL/AUTO_INCREMENT)
         $queryMax = "SELECT MAX(id_usuario) as max_id FROM tab_usuarios";
         $stmtMax = $db->prepare($queryMax);
         $stmtMax->execute();
         $rowMax = $stmtMax->fetch(PDO::FETCH_ASSOC);
         $nextId = ($rowMax['max_id'] ?? 0) + 1;
 
-        // 2. Hash Password
+        // 2. Hash de contraseña
         $passwordHash = password_hash($data->password, PASSWORD_BCRYPT);
 
-        // 3. Insert User
+        // 3. Insertar Usuario
         $query = "INSERT INTO tab_usuarios 
                     (id_usuario, nombre_usuario, apellido_usuario, correo_usuario, pass_hash, id_rol, estado_usuario)
                   VALUES
@@ -38,7 +38,7 @@ if (
 
         $stmt = $db->prepare($query);
 
-        // Sanitize and Bind
+        // Sanear y Vincular (Bind)
         $name = htmlspecialchars(strip_tags($data->name));
         $lastName = htmlspecialchars(strip_tags($data->lastName));
         $email = htmlspecialchars(strip_tags($data->email));
@@ -61,7 +61,7 @@ if (
             echo json_encode(["message" => "No se pudo crear el usuario."]);
         }
     } catch (PDOException $e) {
-        if ($e->getCode() == 23505) { // Unique violation in Postgres
+        if ($e->getCode() == 23505) { // Violación de unicidad en Postgres
              http_response_code(400);
              echo json_encode(["message" => "El correo ya está registrado."]);
         } else {

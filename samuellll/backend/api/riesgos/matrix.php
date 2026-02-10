@@ -3,8 +3,7 @@
 
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET");
-header("Access-Control-Allow-Origin: *");
-
+header("Access-Control-Allow-Origin: *"); // Ajustar para producción
 require_once '../../config/Database.php';
 require_once '../../config/JWT.php';
 
@@ -18,7 +17,7 @@ try {
     $database = new Database();
     $db = $database->getConnection();
 
-    // Group counts by Probability and Impact
+    // Agrupar conteos por Probabilidad e Impacto
     $query = "SELECT 
                 probabilidad,
                 impacto,
@@ -32,7 +31,7 @@ try {
     $stmt->execute();
     $matrixData = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Also get totals
+    // También obtener totales
     $queryStats = "SELECT 
                     COUNT(*) as total,
                     SUM(CASE WHEN categoria_riesgo = 'EXTREMO' THEN 1 ELSE 0 END) as extremos,

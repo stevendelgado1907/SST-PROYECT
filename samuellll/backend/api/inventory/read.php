@@ -30,7 +30,7 @@ try {
     $items = [];
     
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        // Determine status based on stock
+        // Determinar el estado basado en el stock
         $status = 'DISPONIBLE';
         if ($row['stock_actual'] == 0) $status = 'AGOTADO';
         elseif ($row['stock_actual'] <= $row['stock_minimo']) $status = 'BAJO_STOCK';

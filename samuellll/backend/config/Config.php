@@ -8,11 +8,11 @@ class Config {
     private static function load() {
         if (self::$isLoaded) return;
 
-        // Try to find .env in root (going up sections from backend/config/)
+        // Intentar encontrar el archivo .env en la raíz (subiendo niveles desde backend/config/)
         $path = __DIR__ . '/../../.env';
         
         if (!file_exists($path)) {
-            // Fallback or error logging
+            // Alternativa (fallback) o registro de errores
             return;
         }
 

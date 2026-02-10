@@ -19,7 +19,7 @@ async function loadOptions() {
         const response = await fetch('backend/api/riesgos/options.php');
         const data = await response.json();
 
-        // Populate Areas
+        // Llenar Áreas
         const areaSelect = document.getElementById('area_id');
         areaSelect.innerHTML = '<option value="">Seleccione...</option>';
         data.areas.forEach(area => {
@@ -30,7 +30,7 @@ async function loadOptions() {
             areasMap[area.id] = area.nombre;
         });
 
-        // Populate Types
+        // Llenar Tipos
         const typeSelect = document.getElementById('tipo_riesgo_id');
         typeSelect.innerHTML = '<option value="">Seleccione...</option>';
         data.tipos.forEach(type => {
@@ -41,13 +41,13 @@ async function loadOptions() {
             typesMap[type.id] = type;
         });
 
-        // Populate Processes (Optional, dependent on area if implemented properly, simplified here)
+        // Llenar Procesos (Opcional, depende del área si se implementa correctamente, simplificado aquí)
         const processSelect = document.getElementById('proceso_id');
         processSelect.innerHTML = '<option value="">Seleccione...</option>';
         data.procesos.forEach(proc => {
             const option = document.createElement('option');
             option.value = proc.id;
-            option.textContent = `${proc.nombre} (ID: ${proc.area_id})`; // Simplify showing area
+            option.textContent = `${proc.nombre} (ID: ${proc.area_id})`; // Mostrar área de forma simplificada
             processSelect.appendChild(option);
         });
 
@@ -68,16 +68,16 @@ function calculateRiskLevel() {
 
     if (result <= 5) {
         label = `BAJO (${result})`;
-        color = '#28a745'; // Green
+        color = '#28a745'; // Verde
     } else if (result <= 12) {
         label = `MEDIO (${result})`;
-        color = '#ffc107'; // Yellow
+        color = '#ffc107'; // Amarillo
     } else if (result <= 20) {
         label = `ALTO (${result})`;
-        color = '#fd7e14'; // Orange
+        color = '#fd7e14'; // Naranja
     } else {
         label = `EXTREMO (${result})`;
-        color = '#dc3545'; // Red
+        color = '#dc3545'; // Rojo
     }
 
     if (prob > 0 && imp > 0) {
@@ -97,13 +97,13 @@ async function loadMatrix() {
         const response = await fetch('backend/api/riesgos/matrix.php');
         const data = await response.json();
 
-        // Reset Cells
+        // Reiniciar Celdas
         document.querySelectorAll('.matrix-cell').forEach(cell => {
             cell.textContent = '';
-            cell.className = 'matrix-cell'; // Reset classes
+            cell.className = 'matrix-cell'; // Reiniciar clases
         });
 
-        // Fill Matrix
+        // Llenar Matriz
         data.matrix.forEach(item => {
             const prob = item.probabilidad;
             const imp = item.impacto;
@@ -112,25 +112,25 @@ async function loadMatrix() {
 
             if (cell) {
                 cell.textContent = item.cantidad;
-                // Add color class
+                // Añadir clase de color
                 let colorClass = '';
                 if (item.categoria_riesgo === 'BAJO') colorClass = 'low';
                 if (item.categoria_riesgo === 'MEDIO') colorClass = 'medium';
                 if (item.categoria_riesgo === 'ALTO') colorClass = 'high';
-                if (item.categoria_riesgo === 'EXTREMO') colorClass = 'extreme'; // or 'very-high' in css?
+                if (item.categoria_riesgo === 'EXTREMO') colorClass = 'extreme'; // ¿o 'very-high' en css?
 
-                // Check CSS classes in style.css or use internal mapping
-                // Assuming style.css maps: .low, .medium, .high, .extreme (or .very-high)
-                // Let's use inline style for safety if classes vary, or assume standard names
+                // Verificar clases CSS en style.css o usar mapeo interno
+                // Asumiendo que style.css mapea: .low, .medium, .high, .extreme (o .very-high)
+                // Usamos estilo en línea por seguridad si las clases varían, o asumimos nombres estándar
                 cell.classList.add(colorClass || 'low');
 
-                // Make clickable
+                // Hacer clicable
                 cell.style.cursor = 'pointer';
                 cell.onclick = () => filterRisks(prob, imp);
             }
         });
 
-        // Update Stats
+        // Actualizar Estadísticas
         if (data.stats) {
             document.getElementById('totalRisksCount').textContent = data.stats.total || 0;
             document.getElementById('extremeRisksCount').textContent = data.stats.extremos || 0;
@@ -189,7 +189,7 @@ function renderTable(risks) {
     });
 }
 
-// Modal Helpers
+// Ayudantes para Modales
 function prepareAddRisk() {
     document.getElementById('addRiskForm').reset();
     document.getElementById('riskId').value = '';
@@ -206,7 +206,7 @@ function closeModal(modalId) {
     document.getElementById(modalId).style.display = 'none';
 }
 
-// Form Submission
+// Envío del Formulario
 document.getElementById('addRiskForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -233,8 +233,8 @@ document.getElementById('addRiskForm').addEventListener('submit', async (e) => {
         if (response.ok) {
             alert('Riesgo guardado exitosamente');
             closeModal('addRiskModal');
-            loadMatrix(); // Refresh matrix
-            loadRisks();  // Refresh table
+            loadMatrix(); // Refrescar matriz
+            loadRisks();  // Refrescar tabla
         } else {
             alert('Error: ' + result.message);
         }
@@ -244,4 +244,4 @@ document.getElementById('addRiskForm').addEventListener('submit', async (e) => {
     }
 });
 
-// CSS styles moved to assets/css/style.css
+// Los estilos CSS se movieron a assets/css/style.css

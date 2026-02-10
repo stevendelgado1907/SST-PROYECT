@@ -12,8 +12,8 @@ $database = new Database();
 $db = $database->getConnection();
 
 try {
-    // Query workers with position, ARL, and EPS
-    // Using LEFT JOIN to ensure workers are listed even if they don't have ARL/EPS assigned yet
+    // Consultar trabajadores con cargo, ARL y EPS
+    // Usando LEFT JOIN para asegurar que los trabajadores se listen incluso si aún no tienen ARL/EPS asignados
     $query = "SELECT 
                 t.id_trabajador,
                 t.tipo_documento,
@@ -44,7 +44,7 @@ try {
     $workers = [];
     
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        // Map to format expected by main.js
+        // Mapear al formato esperado por main.js
         $workers[] = [
             "id" => $row['id_trabajador'],
             "doc_type" => $row['tipo_documento'],

@@ -9,7 +9,7 @@ require_once '../../config/Database.php';
 require_once '../../config/Config.php';
 require_once '../../config/JWT.php';
 
-// Auth Check
+// Comprobación de Autenticación
 if (!isset($_COOKIE['auth_token'])) {
     http_response_code(401);
     echo json_encode(["message" => "No autorizado"]);
@@ -17,8 +17,8 @@ if (!isset($_COOKIE['auth_token'])) {
 }
 
 $jwt = $_COOKIE['auth_token'];
-$secret = Config::get('JWT_SECRET'); // Or default
-if (!$secret) $secret = 'fallback_secret_key_change_in_production'; // Match verify.php fallback
+$secret = Config::get('JWT_SECRET'); // O por defecto
+if (!$secret) $secret = 'fallback_secret_key_change_in_production'; // Coincidir con el fallback de verify.php
 JWT::setSecret($secret);
 $payload = JWT::decode($jwt);
 
@@ -28,7 +28,7 @@ if (!$payload) {
     exit;
 }
 
-$userId = $payload['data']['id']; // Assuming payload stucture from verify.php
+$userId = $payload['data']['id']; // Asumiendo la estructura del payload de verify.php
 
 $data = json_decode(file_get_contents("php://input"));
 
@@ -64,7 +64,7 @@ try {
 
     $stmt = $db->prepare($query);
 
-    // Sanitize and Bind
+    // Sanear y Vincular (Bind)
     $stmt->bindValue(":area_id", $data->area_id, PDO::PARAM_INT);
     $stmt->bindValue(":proceso_id", isset($data->proceso_id) ? $data->proceso_id : null, PDO::PARAM_INT);
     $stmt->bindValue(":tipo_riesgo_id", $data->tipo_riesgo_id, PDO::PARAM_INT);
@@ -72,11 +72,11 @@ try {
     $stmt->bindValue(":descripcion", htmlspecialchars(strip_tags($data->descripcion ?? '')));
     $stmt->bindValue(":probabilidad", $data->probabilidad, PDO::PARAM_INT);
     $stmt->bindValue(":impacto", $data->impacto, PDO::PARAM_INT);
-    $stmt->bindValue(":frecuencia_exposicion", $data->frecuencia_exposicion); // Enum check handled by DB
+    $stmt->bindValue(":frecuencia_exposicion", $data->frecuencia_exposicion); // Comprobación de Enum manejada por la BD
     $stmt->bindValue(":numero_trabajadores_expuestos", $data->numero_trabajadores_expuestos ?? 1, PDO::PARAM_INT);
     $stmt->bindValue(":controles_actuales", htmlspecialchars(strip_tags($data->controles_actuales ?? '')));
     
-    // Control measures
+    // Medidas de control
     $stmt->bindValue(":eliminacion", htmlspecialchars(strip_tags($data->eliminacion ?? '')));
     $stmt->bindValue(":sustitucion", htmlspecialchars(strip_tags($data->sustitucion ?? '')));
     $stmt->bindValue(":controles_ingenieria", htmlspecialchars(strip_tags($data->controles_ingenieria ?? '')));
@@ -92,8 +92,8 @@ try {
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         $lastId = $row['id'];
         
-        // Log to historial (Could be a trigger, but explicit here is fine too if triggers fail)
-        // We relied on triggers in the SQL script, but let's trust the DB triggers for now.
+        // Registrar en historial (Podría ser un disparador, pero hacerlo explícito aquí también está bien si los disparadores fallan)
+        // Confiamos en los disparadores (triggers) en el script SQL, pero por ahora confiaremos en los de la BD.
         
         http_response_code(201);
         echo json_encode(["message" => "Riesgo creado exitosamente", "id" => $lastId]);

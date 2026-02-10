@@ -1,27 +1,27 @@
 // assets/js/login.js
 
 document.addEventListener('DOMContentLoaded', function () {
-    console.log("Login script loaded");
+    console.log("Script de login cargado");
 
     const loginForm = document.getElementById('loginForm');
 
     if (loginForm) {
         loginForm.addEventListener('submit', async function (e) {
             e.preventDefault();
-            console.log("Submitting login form...");
+            console.log("Enviando formulario de login...");
 
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const errorMessage = document.getElementById('errorMessage');
             const submitBtn = document.querySelector('.btn-login');
 
-            // Visual feedback
+            // Retroalimentación visual
             submitBtn.disabled = true;
             submitBtn.textContent = "Verificando...";
             errorMessage.style.display = 'none';
 
             try {
-                // Ensure the path is correct relative to the HTML file (pages/login.html -> ../backend)
+                // Asegurar que la ruta sea correcta relativa al archivo HTML (pages/login.html -> ../backend)
                 const response = await fetch('../backend/api/auth/login.php', {
                     method: 'POST',
                     headers: {
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     body: JSON.stringify({ email: email, password: password })
                 });
 
-                console.log("Response status:", response.status);
+                console.log("Estado de la respuesta:", response.status);
 
                 let data;
                 try {
@@ -40,15 +40,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 if (response.ok) {
-                    console.log("Login successful");
+                    console.log("Login exitoso");
                     // Cookie auth_token (HttpOnly) + token en localStorage como fallback para fetch
                     if (data.token) localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
 
-                    // Replace history to prevent going back to login
+                    // Reemplazar el historial para evitar volver al login con el botón atrás
                     window.location.replace('../dashboard.html');
                 } else {
-                    console.warn("Login failed:", data.message);
+                    console.warn("Login fallido:", data.message);
                     errorMessage.textContent = data.message || 'Error al iniciar sesión';
                     errorMessage.style.display = 'block';
 
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }, 5000);
                 }
             } catch (error) {
-                console.error('Network or Parsing Error:', error);
+                console.error('Error de red o de parseo:', error);
                 errorMessage.textContent = 'Error de conexión: ' + error.message;
                 errorMessage.style.display = 'block';
 
@@ -69,6 +69,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     } else {
-        console.error("LoginForm not found in DOM");
+        console.error("LoginForm no encontrado en el DOM");
     }
 });

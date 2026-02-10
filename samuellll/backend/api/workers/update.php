@@ -42,7 +42,7 @@ if (
 
         $stmt = $db->prepare($query);
 
-        // Sanitize
+        // Sanear datos
         $data->id = htmlspecialchars(strip_tags($data->id));
         $data->name = htmlspecialchars(strip_tags($data->name));
         $data->lastName = htmlspecialchars(strip_tags($data->lastName));
@@ -54,7 +54,7 @@ if (
         $data->rh = htmlspecialchars(strip_tags($data->rh));
         $data->sex = htmlspecialchars(strip_tags($data->sex));
 
-        // Bind
+        // Vincular parámetros (Bind)
         $stmt->bindParam(":id", $data->id);
         $stmt->bindParam(":name", $data->name);
         $stmt->bindParam(":lastname", $data->lastName);

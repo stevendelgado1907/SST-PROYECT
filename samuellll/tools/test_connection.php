@@ -18,21 +18,21 @@ try {
         exit;
     }
 
-    // Check Brands
+    // Comprobar Marcas
     $query = "SELECT count(*) as count FROM tab_marcas";
     $stmt = $db->prepare($query);
     $stmt->execute();
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     echo "<p>Marcas encontradas: <strong>" . $row['count'] . "</strong></p>";
 
-    // Check Categories
+    // Comprobar Categorías
     $query = "SELECT count(*) as count FROM tab_categorias";
     $stmt = $db->prepare($query);
     $stmt->execute();
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     echo "<p>Categorías encontradas: <strong>" . $row['count'] . "</strong></p>";
 
-    // Check EPP Count
+    // Comprobar Cantidad de EPP
     $query = "SELECT count(*) as count FROM tab_epp";
     $stmt = $db->prepare($query);
     $stmt->execute();
