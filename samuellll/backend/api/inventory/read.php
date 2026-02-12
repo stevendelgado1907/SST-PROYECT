@@ -12,17 +12,21 @@ $database = new Database();
 $db = $database->getConnection();
 
 try {
+    // Query using the professional PostgreSQL function with explicit columns
     $query = "SELECT 
-                i.*, 
-                e.nom_epp, 
-                e.referencia_epp, 
-                c.nom_categoria, 
-                m.nom_marca 
-              FROM inventario_epp i
-              JOIN tab_epp e ON i.id_epp = e.id_epp
-              LEFT JOIN tab_marcas m ON e.id_marca = m.id_marca
-              LEFT JOIN tab_categorias c ON e.id_categoria = c.id_categoria
-              ORDER BY i.id_inventario DESC";
+                id_inventario, 
+                id_epp, 
+                nom_epp, 
+                referencia_epp, 
+                nom_marca, 
+                nom_categoria, 
+                stock_actual, 
+                stock_minimo, 
+                stock_maximo, 
+                punto_reorden, 
+                ultima_actualizacion 
+              FROM fn_inventario_epp_select() 
+              ORDER BY id_inventario DESC";
 
     $stmt = $db->prepare($query);
     $stmt->execute();
@@ -30,7 +34,7 @@ try {
     $items = [];
     
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        // Determinar el estado basado en el stock
+        // Determine status based on stock
         $status = 'DISPONIBLE';
         if ($row['stock_actual'] == 0) $status = 'AGOTADO';
         elseif ($row['stock_actual'] <= $row['stock_minimo']) $status = 'BAJO_STOCK';

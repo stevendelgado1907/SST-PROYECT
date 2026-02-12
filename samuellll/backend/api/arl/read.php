@@ -11,8 +11,16 @@ $database = new Database();
 $db = $database->getConnection();
 
 try {
-    $query = "SELECT id_arl as id, nom_arl as name, nit_arl as nit, direccion_arl as address, 
-              tel_arl as phone, correo_arl as email FROM tab_arl ORDER BY nom_arl ASC";
+    // Query using the professional PostgreSQL function with explicit columns
+    $query = "SELECT 
+                id_arl as id, 
+                nom_arl as name, 
+                nit_arl as nit, 
+                direccion_arl as address, 
+                tel_arl as phone, 
+                correo_arl as email 
+              FROM fn_tab_arl_select() 
+              ORDER BY nom_arl ASC";
     $stmt = $db->prepare($query);
     $stmt->execute();
     

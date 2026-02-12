@@ -1,5 +1,5 @@
 
-// Globales para EPP e Inventario
+// Globals for EPP and Inventory
 let eppList = [];
 let invList = [];
 let workers = [];
@@ -10,12 +10,12 @@ let epsList = [];
 let ipsList = [];
 let currentUser = JSON.parse(localStorage.getItem('user'));
 
-// Ayudantes para Modales
+// Modal Helpers
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
-        modal.style.display = 'flex'; // Forzar visibilidad
-        // Pequeño tiempo de espera para permitir que el cambio de pantalla se registre antes de la transición de opacidad
+        modal.style.display = 'flex'; // Enforce visibility
+        // Small timeout to allow display change to register before opacity transition
         setTimeout(() => {
             modal.classList.add('active');
         }, 10);
@@ -26,19 +26,29 @@ function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.classList.remove('active');
-        // Esperar a que la transición termine antes de ocultar
+        // Wait for transition to finish before hiding
         setTimeout(() => {
             modal.style.display = 'none';
         }, 300);
     }
 }
 
-// Clic en la ventana para cerrar modales
-// Clic en la ventana para cerrar modales
+// Window click to close modals
+// Window click to close modals
 window.onclick = function (event) {
     if (event.target.classList.contains('modal')) {
         closeModal(event.target.id);
     }
+}
+
+// Cerrar sesión con confirmación
+window.confirmLogout = function (event) {
+    if (event) event.preventDefault();
+    if (!confirm('¿Está seguro de cerrar sesión?')) return false;
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    window.location.href = 'backend/api/auth/logout.php';
+    return false;
 }
 
 // Verificar autenticación
@@ -63,7 +73,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (document.getElementById('arlTable')) renderHealthEntities();
 
     // Nueva función para cargar estadísticas reales del dashboard
-    if (document.getElementById('totalWorkers')) loadDashboardStats();
+    if (document.getElementById('totalWorkers')) {
+        loadDashboardStats();
+        loadRecentActivity(); // Cargar actividad reciente
+    }
 
     updateStatistics(); // Mantener para fallback o tablas locales
 });
@@ -77,12 +90,139 @@ async function loadDashboardStats() {
             // Para EPP, stats.php devuelve totalEpp (suma stock). 
             if (document.getElementById('totalEpp')) document.getElementById('totalEpp').innerText = stats.totalEpp || 0;
             if (document.getElementById('totalRisks')) document.getElementById('totalRisks').innerText = stats.totalRisks;
-            if (document.getElementById('expiringSoon')) document.getElementById('expiringSoon').innerText = stats.expiringSoon;
+            if (document.getElementById('expiringSoon')) {
+                document.getElementById('expiringSoon').innerText = stats.expiringSoon;
+                // Resaltar si hay EPP por vencer
+                const expiringCard = document.getElementById('expiringCard');
+                if (stats.expiringSoon > 0 && expiringCard) {
+                    expiringCard.style.borderLeftColor = '#ef4444';
+                    expiringCard.style.backgroundColor = '#fef2f2';
+                }
+            }
+            
+            // Mostrar alertas si hay problemas
+            const alertsContainer = document.getElementById('dashboardAlerts');
+            if (alertsContainer) {
+                alertsContainer.innerHTML = '';
+                if (stats.expiringSoon > 0) {
+                    const alert = document.createElement('div');
+                    alert.className = 'card';
+                    alert.style.borderLeft = '4px solid #f59e0b';
+                    alert.style.backgroundColor = '#fffbeb';
+                    alert.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5em;">⚠️</span>
+                            <div>
+                                <strong>${stats.expiringSoon} EPP próximo${stats.expiringSoon > 1 ? 's' : ''} a vencer</strong>
+                                <p style="margin: 5px 0 0 0; color: #666;">Hay equipos que vencen en los próximos 30 días. <a href="epp.html" style="color: #2563eb;">Ver detalles →</a></p>
+                            </div>
+                        </div>
+                    `;
+                    alertsContainer.appendChild(alert);
+                }
+                if (stats.lowStock > 0) {
+                    const alert = document.createElement('div');
+                    alert.className = 'card';
+                    alert.style.borderLeft = '4px solid #ef4444';
+                    alert.style.backgroundColor = '#fef2f2';
+                    alert.style.marginTop = '10px';
+                    alert.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5em;">📦</span>
+                            <div>
+                                <strong>${stats.lowStock} item${stats.lowStock > 1 ? 's' : ''} con stock bajo</strong>
+                                <p style="margin: 5px 0 0 0; color: #666;">Hay productos que están en o por debajo del stock mínimo. <a href="inventario.html" style="color: #2563eb;">Ver inventario →</a></p>
+                            </div>
+                        </div>
+                    `;
+                    alertsContainer.appendChild(alert);
+                }
+            }
         } else {
             console.error("Error loading stats:", response.status);
         }
     } catch (e) {
         console.error("Error fetching dashboard stats:", e);
+    }
+}
+
+async function loadRecentActivity() {
+    const tbody = document.getElementById('recentActivity');
+    if (!tbody) return;
+
+    try {
+        // Cargar datos recientes de diferentes módulos
+        const [workersRes, eppRes, risksRes, invRes] = await Promise.all([
+            fetch('backend/api/workers/read.php', { headers: getAuthHeaders() }).catch(() => null),
+            fetch('backend/api/epp/read.php', { headers: getAuthHeaders() }).catch(() => null),
+            fetch('backend/api/risks/read.php', { headers: getAuthHeaders() }).catch(() => null),
+            fetch('backend/api/inventory/read.php', { headers: getAuthHeaders() }).catch(() => null)
+        ]);
+
+        const activities = [];
+
+        // Trabajadores recientes (últimos 5)
+        if (workersRes && workersRes.ok) {
+            const workers = await workersRes.json();
+            workers.slice(0, 5).forEach(w => {
+                activities.push({
+                    fecha: w.fecha_registro || w.startDate || new Date().toISOString().split('T')[0],
+                    actividad: `Nuevo trabajador: ${w.name} ${w.lastName}`,
+                    usuario: currentUser?.name || 'Sistema',
+                    detalle: `Documento: ${w.id}`
+                });
+            });
+        }
+
+        // EPP recientes (últimos 5) - usando fecha_compra_epp como referencia
+        if (eppRes && eppRes.ok) {
+            const epps = await eppRes.json();
+            epps.slice(0, 5).forEach(e => {
+                activities.push({
+                    fecha: e.buy_date || new Date().toISOString().split('T')[0],
+                    actividad: `Nuevo EPP registrado: ${e.name}`,
+                    usuario: currentUser?.name || 'Sistema',
+                    detalle: `Referencia: ${e.reference}`
+                });
+            });
+        }
+
+        // Riesgos recientes (últimos 5) - no hay fecha en BD, usamos orden por ID
+        if (risksRes && risksRes.ok) {
+            const risks = await risksRes.json();
+            risks.slice(0, 5).forEach(r => {
+                activities.push({
+                    fecha: new Date().toISOString().split('T')[0],
+                    actividad: `Nuevo riesgo identificado: ${r.name}`,
+                    usuario: currentUser?.name || 'Sistema',
+                    detalle: `Nivel: ${r.level}`
+                });
+            });
+        }
+
+        // Ordenar por fecha (más reciente primero) y tomar los últimos 10
+        activities.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+        const recentActivities = activities.slice(0, 10);
+
+        tbody.innerHTML = '';
+        if (recentActivities.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4">No hay actividad reciente.</td></tr>';
+            return;
+        }
+
+        recentActivities.forEach(act => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${act.fecha}</td>
+                <td>${act.actividad}</td>
+                <td>${act.usuario}</td>
+                <td>${act.detalle}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    } catch (e) {
+        console.error("Error loading recent activity:", e);
+        if (tbody) tbody.innerHTML = '<tr><td colspan="4">Error al cargar actividad reciente.</td></tr>';
     }
 }
 
@@ -128,10 +268,10 @@ function checkCookieConsent() {
 }
 
 function setupEventListeners() {
-    // La lógica de cierre de sesión es manejada por la etiqueta de anclaje en HTML
+    // Logout logic handled by anchor tag in HTML
 
     // Formulario agregar usuario
-    // Exponer para uso global
+    // Expose for global use
     window.addNewWorker = addNewWorker;
 
     if (addUserForm) {
@@ -150,25 +290,10 @@ function setupEventListeners() {
         });
     }
 
-    // Formulario agregar Inventario (ID en HTML es addEppForm por legacy, lo dejé así en HTML pero es inventario)
-    // Espera, en inventario.html el form ID es addEppForm.
-    // Formulario agregar Inventario
-    const addInventoryForm = document.getElementById('addEppForm');
-    if (addInventoryForm) {
-        addInventoryForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-            saveInventory();
-        });
-    }
-
-    // Formulario agregar EPP
-    const addEquipmentForm = document.getElementById('addEquipmentForm');
-    if (addEquipmentForm) {
-        addEquipmentForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-            saveEpp();
-        });
-    }
+    // Formularios de Inventario y EPP:
+    // Ahora el submit se maneja directamente desde el HTML con onsubmit="event.preventDefault(); saveInventory();"
+    // y onsubmit="event.preventDefault(); saveEpp();", para garantizar que la acción siempre se dispare
+    // aunque algún listener JS falle. Aquí no añadimos más listeners para evitar envíos duplicados.
 
     // Formularios ARL, EPS, IPS
     const arlForm = document.getElementById('arlForm');
@@ -236,7 +361,7 @@ function getFetchOpts(method, body) {
 }
 
 // -------------------------------------------------------------
-// RENDERIZAR TABLAS (API)
+// RENDER TABLES (API)
 // -------------------------------------------------------------
 
 async function renderUsersTable() {
@@ -254,7 +379,7 @@ async function renderUsersTable() {
 
         const data = await response.json();
         const usersData = Array.isArray(data) ? data : [];
-        usersList = usersData; // Global para edición
+        usersList = usersData; // Global for edit
 
         tbody.innerHTML = '';
         if (usersData.length === 0) {
@@ -265,13 +390,23 @@ async function renderUsersTable() {
         usersData.forEach(user => {
             const row = document.createElement('tr');
             const isActive = user.status === 'ACTIVO';
+            // Formatear último acceso
+            let lastAccessFormatted = 'Nunca';
+            if (user.lastAccess) {
+                try {
+                    const lastAccessDate = new Date(user.lastAccess);
+                    lastAccessFormatted = lastAccessDate.toLocaleDateString('es-ES') + ' ' + lastAccessDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                } catch (e) {
+                    lastAccessFormatted = user.lastAccess;
+                }
+            }
             row.innerHTML = `
                 <td>${user.id}</td>
                 <td>${user.fullName}</td>
                 <td>${user.email}</td>
                 <td><span class="role-badge ${user.role === 'ADMINISTRADOR' ? 'admin' : ''}">${user.role}</span></td>
                 <td><span class="status-badge ${isActive ? 'status-active' : 'status-inactive'}">${user.status}</span></td>
-                <td>${user.lastAccess || 'Nunca'}</td>
+                <td>${lastAccessFormatted}</td>
                 <td>
                     ${currentUser && currentUser.data && currentUser.data.rol === 'ADMINISTRADOR' ? `
                     <button class="btn btn-primary btn-sm" onclick="editUser(${user.id})">✏️</button>
@@ -311,8 +446,26 @@ async function renderEppTable() {
 
         eppList.forEach(item => {
             const row = document.createElement('tr');
-            // Usar clase específica para el coloreado de estado
+            // Use specific class for status coloring
             const statusClass = item.status === 'DISPONIBLE' ? 'status-active' : 'status-inactive';
+            
+            // Formatear fecha de vencimiento y verificar si está por vencer
+            let expDateFormatted = item.exp_date || 'N/A';
+            let expDateClass = '';
+            if (item.exp_date) {
+                const expDate = new Date(item.exp_date);
+                const today = new Date();
+                const daysDiff = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+                if (daysDiff < 0) {
+                    expDateClass = 'style="color: #ef4444; font-weight: bold;"';
+                    expDateFormatted = `${item.exp_date} (Vencido)`;
+                } else if (daysDiff <= 30) {
+                    expDateClass = 'style="color: #f59e0b; font-weight: bold;"';
+                    expDateFormatted = `${item.exp_date} (${daysDiff} días)`;
+                } else {
+                    expDateFormatted = item.exp_date;
+                }
+            }
 
             row.innerHTML = `
                     <td>${item.id}</td>
@@ -320,7 +473,7 @@ async function renderEppTable() {
                     <td>${item.reference}</td>
                     <td>${item.brand_name || 'N/A'}</td>
                     <td>${item.category_name || 'N/A'}</td>
-                    <td>${item.exp_date}</td>
+                    <td ${expDateClass}>${expDateFormatted}</td>
                     <td><span class="status-badge ${statusClass}">${item.status}</span></td>
                     <td>
                         <button class="btn btn-primary btn-sm" onclick="editEpp(${item.id})">✏️</button>
@@ -352,7 +505,7 @@ async function renderWorkersTable() {
 
         const data = await response.json();
         const workersData = Array.isArray(data) ? data : [];
-        workers = workersData; // Actualizar global para estadísticas
+        workers = workersData; // Update global for stats
 
         tbody.innerHTML = '';
         if (workersData.length === 0) {
@@ -362,14 +515,22 @@ async function renderWorkersTable() {
 
         workersData.forEach(worker => {
             const row = document.createElement('tr');
+            // Determinar estado según fecha de retiro (BD: fecha_retiro_trabajador)
+            const isActive = !worker.fecha_retiro_trabajador || new Date(worker.fecha_retiro_trabajador) > new Date();
+            const statusClass = isActive ? 'status-active' : 'status-inactive';
+            const statusText = isActive ? 'ACTIVO' : 'RETIRADO';
+            
+            // Formatear fecha de ingreso
+            const startDateFormatted = worker.startDate ? new Date(worker.startDate).toLocaleDateString('es-ES') : 'N/A';
+
             row.innerHTML = `
                 <td>${worker.id}</td>
                 <td>${worker.name} ${worker.lastName}</td>
-                <td>${worker.position}</td>
-                <td>${worker.startDate}</td>
-                <td>${worker.arl}</td>
-                <td>${worker.eps}</td>
-                <td><span class="status-badge status-active">ACTIVO</span></td>
+                <td>${worker.position || 'Sin cargo'}</td>
+                <td>${startDateFormatted}</td>
+                <td>${worker.arl || 'Sin ARL'}</td>
+                <td>${worker.eps || 'Sin EPS'}</td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                 <td>
                     <button class="btn btn-primary btn-sm" onclick="viewWorker('${worker.id}')">👁️</button>
                     <button class="btn btn-success btn-sm" onclick="editWorker('${worker.id}')">✏️</button>
@@ -379,7 +540,7 @@ async function renderWorkersTable() {
             tbody.appendChild(row);
         });
 
-        // Actualizar contador de estadísticas
+        // Update stats counter
         const totalWorkers = document.getElementById('totalWorkers');
         if (totalWorkers) totalWorkers.textContent = workersData.length;
 
@@ -411,13 +572,21 @@ async function renderInventoryTable() {
         invList.forEach(item => {
             const row = document.createElement('tr');
             const statusClass = item.status === 'DISPONIBLE' ? 'status-active' : (item.status === 'BAJO_STOCK' ? 'status-assigned' : 'status-inactive');
+            
+            // Resaltar stock bajo o crítico
+            let stockClass = '';
+            if (item.stock <= item.minStock) {
+                stockClass = 'style="color: #ef4444; font-weight: bold;"';
+            } else if (item.stock <= item.reorder) {
+                stockClass = 'style="color: #f59e0b; font-weight: bold;"';
+            }
 
             row.innerHTML = `
                 <td>${item.id}</td>
                 <td>${item.name}</td>
-                <td>${item.category}</td>
-                <td>${item.brand}</td>
-                <td>${item.stock}</td>
+                <td>${item.category || 'N/A'}</td>
+                <td>${item.brand || 'N/A'}</td>
+                <td ${stockClass}>${item.stock}</td>
                 <td>${item.minStock}</td>
                 <td><span class="status-badge ${statusClass}">${item.status}</span></td>
                 <td>
@@ -444,14 +613,14 @@ async function renderRisksTable() {
     tbody.innerHTML = '<tr><td colspan="8">Cargando riesgos...</td></tr>';
 
     try {
-        // Añadir marca de tiempo para evitar el almacenamiento en caché (caching)
+        // Add timestamp to prevent caching
         const response = await fetch(`backend/api/risks/read.php?t=${new Date().getTime()}`, { headers: getAuthHeaders() });
         if (response.status === 401) { window.location.href = 'login.html'; return; }
 
         const data = await response.json();
         risks = Array.isArray(data) ? data : [];
 
-        // Actualizar Dashboard (Matriz y Estadísticas)
+        // Update Dashboard (Matrix & Stats)
         updateRiskDashboard(risks);
 
         tbody.innerHTML = '';
@@ -463,9 +632,9 @@ async function renderRisksTable() {
         risks.forEach(risk => {
             const row = document.createElement('tr');
 
-            // Fallback de porcentaje
+            // Percentage fallback
             let percent = risk.percentage;
-            // Normalizar para el cálculo de fallback
+            // Normalize for fallback calc
             const pUpper = (risk.probability || '').trim().toUpperCase();
             const sUpper = (risk.severity || '').trim().toUpperCase();
 
@@ -475,10 +644,10 @@ async function renderRisksTable() {
                 percent = Math.round(((probVal * sevVal) / 300) * 100);
             }
 
-            // Determinar color
-            let barColor = '#10b981'; // Verde
-            if (percent > 15) barColor = '#f59e0b'; // Amarillo/Naranja
-            if (percent > 40) barColor = '#ef4444'; // Rojo
+            // Determine color
+            let barColor = '#10b981'; // Green
+            if (percent > 15) barColor = '#f59e0b'; // Yellow/Orange
+            if (percent > 40) barColor = '#ef4444'; // Red
 
             row.innerHTML = `
                 <td>${risk.id}</td>
@@ -509,13 +678,13 @@ async function renderRisksTable() {
     }
 }
 
-// Ayudante para colores de insignias (badges)
+// Helper for badge colors
 function getRiskLevelClass(level) {
     switch (level) {
-        case 'BAJO': return 'status-active'; // Verdoso
-        case 'MEDIO': return 'status-warning'; // Amarillento 
-        case 'ALTO': return 'status-inactive'; // Rojizo
-        case 'MUY ALTO': return 'status-inactive'; // Rojizo
+        case 'BAJO': return 'status-active'; // Greenish
+        case 'MEDIO': return 'status-warning'; // Yellowish 
+        case 'ALTO': return 'status-inactive'; // Reddish
+        case 'MUY ALTO': return 'status-inactive'; // Reddish
         default: return '';
     }
 }
@@ -557,11 +726,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // -------------------------------------------------------------
-// LÓGICA DEL DASHBOARD DE RIESGOS (Matriz y Estadísticas)
+// RISK DASHBOARD LOGIC (Matrix & Stats)
 // -------------------------------------------------------------
 
 function updateRiskDashboard(riskData) {
-    // 1. Actualizar Tarjetas de Estadísticas (Filtrado insensible a mayúsculas/minúsculas)
+    // 1. Update Statistics Cards (Case insensitive filtering)
     const total = riskData.length;
     const high = riskData.filter(r => {
         const l = (r.level || '').toUpperCase();
@@ -575,12 +744,12 @@ function updateRiskDashboard(riskData) {
     if (document.getElementById('mediumRisksCountStats')) document.getElementById('mediumRisksCountStats').textContent = medium;
     if (document.getElementById('lowRisksCountStats')) document.getElementById('lowRisksCountStats').textContent = low;
 
-    // Calcular % de Riesgo Promedio
+    // Calculate Average Risk %
     let avgPercent = 0;
     if (total > 0) {
         const sumPercent = riskData.reduce((acc, curr) => {
             let p = curr.percentage;
-            // Normalizar para el cálculo de fallback
+            // Normalize for fallback calc
             const pUpper = (curr.probability || '').toUpperCase();
             const sUpper = (curr.severity || '').toUpperCase();
 
@@ -595,18 +764,18 @@ function updateRiskDashboard(riskData) {
     }
     if (document.getElementById('avgRiskStats')) document.getElementById('avgRiskStats').textContent = avgPercent + '%';
 
-    // 2. Actualizar Matriz
+    // 2. Update Matrix
     document.querySelectorAll('.matrix-cell').forEach(cell => {
         cell.innerHTML = '';
     });
 
     riskData.forEach(risk => {
-        // Asegurar que los valores coincidan con el formato del ID (ej., MUY_GRAVE)
+        // Ensure values match ID format (e.g., MUY_GRAVE)
         let prob = (risk.probability || '').trim().toUpperCase();
         let sev = (risk.severity || '').trim().toUpperCase();
 
-        // Normalizar valores específicos
-        sev = sev.replace(/\s+/g, '_'); // Reemplazar espacios dentro del texto con guion bajo
+        // Normalize specific values
+        sev = sev.replace(/\s+/g, '_'); // Replace spaces within the text with underscore
 
         const cellId = `cell-${prob}-${sev}`;
         const cell = document.getElementById(cellId);
@@ -627,9 +796,9 @@ function updateRiskDashboard(riskData) {
 window.prepareAddRisk = function () {
     document.getElementById('addRiskForm').reset();
     document.getElementById('riskId').value = '';
-    // Reiniciar/Recalcular nivel
+    // Reset/Recalc level
     calculateRiskLevel();
-    // ¿Deshabilitar edición manual del nivel?
+    // Disable manual editing of level?
     document.getElementById('riskLevel').style.pointerEvents = 'none';
     document.getElementById('riskLevel').style.backgroundColor = '#f3f4f6';
     openModal('addRiskModal');
@@ -645,7 +814,7 @@ window.editRisk = function (id) {
     document.getElementById('riskProb').value = risk.probability;
     document.getElementById('riskSev').value = risk.severity;
 
-    // Auto-establecer nivel basado en prob/sev actual
+    // Auto-set level based on current prob/sev
     calculateRiskLevel();
     document.getElementById('riskLevel').style.pointerEvents = 'none';
     document.getElementById('riskLevel').style.backgroundColor = '#f3f4f6';
@@ -656,7 +825,7 @@ window.editRisk = function (id) {
     openModal('addRiskModal');
 };
 
-// Guardar Riesgo (Crear/Actualizar)
+// Save Risk (Create/Update)
 document.getElementById('addRiskForm')?.addEventListener('submit', async function (e) {
     e.preventDefault();
 
@@ -744,7 +913,7 @@ window.editRisk = function (id) {
 };
 
 // -------------------------------------------------------------
-// ENTIDADES DE SALUD (ARL, EPS, IPS)
+// HEALTH ENTITIES (ARL, EPS, IPS)
 // -------------------------------------------------------------
 
 async function renderHealthEntities() {
@@ -852,13 +1021,56 @@ async function saveArl() {
     const id = document.getElementById('arlId').value;
     const isUpdate = id !== '';
     const url = isUpdate ? 'backend/api/arl/update.php' : 'backend/api/arl/create.php';
+
+    // Validaciones frontend coherentes con BD
+    const name = document.getElementById('arlName').value.trim();
+    const nit = document.getElementById('arlNit').value.trim();
+    const address = document.getElementById('arlAddress').value.trim();
+    const phone = document.getElementById('arlPhone').value.trim();
+    const email = document.getElementById('arlEmail').value.trim();
+
+    if (!name || name.length > 100) {
+        alert('El nombre es obligatorio y no puede exceder 100 caracteres.');
+        return;
+    }
+
+    // Validar NIT (BD: VARCHAR(20) UNIQUE) - formato: números y guiones
+    if (!nit || !/^[\d-]+$/.test(nit) || nit.length > 20) {
+        alert('El NIT es obligatorio, debe contener solo números y guiones (máximo 20 caracteres).');
+        return;
+    }
+
+    if (!address || address.length > 200) {
+        alert('La dirección es obligatoria y no puede exceder 200 caracteres.');
+        return;
+    }
+
+    // Validar teléfono (BD: VARCHAR(15))
+    if (!phone || !/^\d+$/.test(phone) || phone.length > 15 || phone.length < 7) {
+        alert('El teléfono es obligatorio y debe contener solo números (7-15 dígitos).');
+        return;
+    }
+
+    // Validar email si se proporciona (BD: VARCHAR(100))
+    if (email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert('Debe ingresar un correo electrónico válido.');
+            return;
+        }
+        if (email.length > 100) {
+            alert('El correo no puede exceder 100 caracteres.');
+            return;
+        }
+    }
+
     const payload = {
         id: id || undefined,
-        name: document.getElementById('arlName').value,
-        nit: document.getElementById('arlNit').value,
-        address: document.getElementById('arlAddress').value,
-        phone: document.getElementById('arlPhone').value,
-        email: document.getElementById('arlEmail').value
+        name: name,
+        nit: nit,
+        address: address,
+        phone: phone,
+        email: email || null
     };
     if (isUpdate) payload.id = parseInt(id);
 
@@ -910,11 +1122,47 @@ async function saveEps() {
     const id = document.getElementById('epsId').value;
     const isUpdate = id !== '';
     const url = isUpdate ? 'backend/api/eps/update.php' : 'backend/api/eps/create.php';
+
+    // Validaciones frontend coherentes con BD
+    const name = document.getElementById('epsName').value.trim();
+    const address = document.getElementById('epsAddress').value.trim();
+    const phone = document.getElementById('epsPhone').value.trim();
+    const email = document.getElementById('epsEmail').value.trim();
+
+    if (!name || name.length > 100) {
+        alert('El nombre es obligatorio y no puede exceder 100 caracteres.');
+        return;
+    }
+
+    if (!address || address.length > 200) {
+        alert('La dirección es obligatoria y no puede exceder 200 caracteres.');
+        return;
+    }
+
+    // Validar teléfono (BD: VARCHAR(15))
+    if (!phone || !/^\d+$/.test(phone) || phone.length > 15 || phone.length < 7) {
+        alert('El teléfono es obligatorio y debe contener solo números (7-15 dígitos).');
+        return;
+    }
+
+    // Validar email si se proporciona (BD: VARCHAR(100))
+    if (email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert('Debe ingresar un correo electrónico válido.');
+            return;
+        }
+        if (email.length > 100) {
+            alert('El correo no puede exceder 100 caracteres.');
+            return;
+        }
+    }
+
     const payload = {
-        name: document.getElementById('epsName').value,
-        address: document.getElementById('epsAddress').value,
-        phone: document.getElementById('epsPhone').value,
-        email: document.getElementById('epsEmail').value
+        name: name,
+        address: address,
+        phone: phone,
+        email: email || null
     };
     if (isUpdate) payload.id = parseInt(id);
 
@@ -966,11 +1214,47 @@ async function saveIps() {
     const id = document.getElementById('ipsId').value;
     const isUpdate = id !== '';
     const url = isUpdate ? 'backend/api/ips/update.php' : 'backend/api/ips/create.php';
+
+    // Validaciones frontend coherentes con BD
+    const name = document.getElementById('ipsName').value.trim();
+    const address = document.getElementById('ipsAddress').value.trim();
+    const phone = document.getElementById('ipsPhone').value.trim();
+    const email = document.getElementById('ipsEmail').value.trim();
+
+    if (!name || name.length > 100) {
+        alert('El nombre es obligatorio y no puede exceder 100 caracteres.');
+        return;
+    }
+
+    if (!address || address.length > 200) {
+        alert('La dirección es obligatoria y no puede exceder 200 caracteres.');
+        return;
+    }
+
+    // Validar teléfono (BD: VARCHAR(15))
+    if (!phone || !/^\d+$/.test(phone) || phone.length > 15 || phone.length < 7) {
+        alert('El teléfono es obligatorio y debe contener solo números (7-15 dígitos).');
+        return;
+    }
+
+    // Validar email si se proporciona (BD: VARCHAR(100))
+    if (email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert('Debe ingresar un correo electrónico válido.');
+            return;
+        }
+        if (email.length > 100) {
+            alert('El correo no puede exceder 100 caracteres.');
+            return;
+        }
+    }
+
     const payload = {
-        name: document.getElementById('ipsName').value,
-        address: document.getElementById('ipsAddress').value,
-        phone: document.getElementById('ipsPhone').value,
-        email: document.getElementById('ipsEmail').value
+        name: name,
+        address: address,
+        phone: phone,
+        email: email || null
     };
     if (isUpdate) payload.id = parseInt(id);
 
@@ -1000,7 +1284,7 @@ window.deleteIps = async function (id) {
 };
 
 // -------------------------------------------------------------
-// FUNCIONES DE ADICIÓN (API)
+// ADD FUNCTIONS (API)
 // -------------------------------------------------------------
 
 async function addNewUser() {
@@ -1099,12 +1383,12 @@ async function addNewWorker() {
 
 
 // -------------------------------------------------------------------------
-// CRUD DE EPP
+// EPP CRUD
 // -------------------------------------------------------------------------
 
 async function loadBrandsAndCategories() {
     try {
-        // Cargar Marcas
+        // Load Brands
         const brandRes = await fetch('backend/api/brands/read.php', { headers: getAuthHeaders() });
         const brands = await brandRes.json();
         const brandSelect = document.getElementById('eppBrand');
@@ -1115,7 +1399,7 @@ async function loadBrandsAndCategories() {
             });
         }
 
-        // Cargar Categorías
+        // Load Categories
         const catRes = await fetch('backend/api/categories/read.php', { headers: getAuthHeaders() });
         const cats = await catRes.json();
         const catSelect = document.getElementById('eppCategory');
@@ -1149,42 +1433,85 @@ async function saveEpp() {
         return;
     }
 
+    // Validaciones adicionales de front antes de enviar al backend
+    const name = document.getElementById('eppName').value.trim();
+    const type = document.getElementById('eppType').value.trim();
+    const size = document.getElementById('eppSize').value.trim();
+    const reference = document.getElementById('eppReference').value.trim();
+    const manufacturer = document.getElementById('eppManufacturer').value.trim();
+    const serial = document.getElementById('eppSerial').value.trim();
+    const fabDate = document.getElementById('eppFabDate').value;
+    const expDate = document.getElementById('eppExpDate').value;
+    const buyDate = document.getElementById('eppBuyDate').value;
+    const lifeMonthsRaw = document.getElementById('eppLife').value;
+    const description = document.getElementById('eppDescription').value.trim();
+
+    if (!name || !type || !size || !reference || !manufacturer || !serial || !fabDate || !expDate || !buyDate || !lifeMonthsRaw || !description) {
+        alert('Todos los campos del EPP son obligatorios.');
+        return;
+    }
+
+    const lifeMonths = parseInt(lifeMonthsRaw, 10);
+    if (isNaN(lifeMonths) || lifeMonths <= 0) {
+        alert('La vida útil (meses) debe ser un número mayor que 0.');
+        return;
+    }
+
+    const fab = new Date(fabDate);
+    const buy = new Date(buyDate);
+    const exp = new Date(expDate);
+    if (fab > buy) {
+        alert('La fecha de compra no puede ser anterior a la fecha de fabricación.');
+        return;
+    }
+    if (buy > exp) {
+        alert('La fecha de vencimiento debe ser posterior a la fecha de compra.');
+        return;
+    }
+    if (fab > exp) {
+        alert('La fecha de vencimiento debe ser posterior a la fecha de fabricación.');
+        return;
+    }
+
     const eppData = {
         id: id,
-        name: document.getElementById('eppName').value,
-        type: document.getElementById('eppType').value,
+        name: name,
+        type: type,
         brand_id: brandVal,
         category_id: catVal,
-        size: document.getElementById('eppSize').value,
-        reference: document.getElementById('eppReference').value,
-        manufacturer: document.getElementById('eppManufacturer').value,
-        serial: document.getElementById('eppSerial').value,
-        fab_date: document.getElementById('eppFabDate').value,
-        exp_date: document.getElementById('eppExpDate').value,
-        buy_date: document.getElementById('eppBuyDate').value,
-        life_months: document.getElementById('eppLife').value,
-        description: document.getElementById('eppDescription').value
+        size: size,
+        reference: reference,
+        manufacturer: manufacturer,
+        serial: serial,
+        fab_date: fabDate,
+        exp_date: expDate,
+        buy_date: buyDate,
+        life_months: lifeMonths,
+        description: description
     };
 
     try {
         const response = await fetch(url, getFetchOpts('POST', eppData));
-        let err = {};
-        try { err = await response.json(); } catch (_) { err = { message: await response.text() || 'Error del servidor' }; }
+        const data = await response.json().catch(() => ({}));
 
         if (response.ok) {
             alert(isUpdate ? 'EPP actualizado exitosamente' : 'EPP creado exitosamente');
             closeModal('addEquipmentModal');
+            document.getElementById('addEquipmentForm').reset();
             renderEppTable();
+            // Muy importante: Si creamos un EPP, el backend crea un registro en inventario
+            if (document.getElementById('inventarioTable')) renderInventoryTable();
+            if (document.getElementById('totalWorkers')) loadDashboardStats();
         } else {
-            if (err.missing_fields) {
-                alert('Faltan datos: ' + err.missing_fields.join(', '));
+            if (data.missing_fields) {
+                alert('Faltan datos obligatorios: ' + data.missing_fields.join(', '));
             } else {
-                alert('Error: ' + (err.message || 'Error desconocido'));
+                alert('Error: ' + (data.message || 'Error desconocido del servidor'));
             }
         }
     } catch (e) {
         console.error('saveEpp error:', e);
-        alert('Error de conexión: ' + (e.message || 'Revise la consola'));
+        alert('Error de conexión con el servidor: ' + e.message);
     }
 }
 
@@ -1236,7 +1563,7 @@ window.deleteEpp = async function (id) {
 };
 
 // -------------------------------------------------------------------------
-// CRUD DE INVENTARIO
+// INVENTORY CRUD
 // -------------------------------------------------------------------------
 
 window.prepareAddInventory = async function () {
@@ -1265,13 +1592,46 @@ async function saveInventory() {
     const isUpdate = id !== '';
     const url = isUpdate ? 'backend/api/inventory/update.php' : 'backend/api/inventory/create.php';
 
+    const eppId = document.getElementById('invEppId').value;
+    const stockRaw = document.getElementById('invStock').value;
+    const minRaw = document.getElementById('invMinStock').value;
+    const maxRaw = document.getElementById('invMaxStock').value;
+    const reorderRaw = document.getElementById('invReorder').value;
+
+    if (!eppId) {
+        alert('Debe seleccionar un EPP para el inventario.');
+        return;
+    }
+
+    const stock = parseInt(stockRaw, 10);
+    const minStock = parseInt(minRaw, 10);
+    const maxStock = parseInt(maxRaw, 10);
+    const reorder = parseInt(reorderRaw, 10);
+
+    if ([stock, minStock, maxStock, reorder].some(v => isNaN(v))) {
+        alert('Stock, punto de reorden, mínimo y máximo deben ser números válidos.');
+        return;
+    }
+    if (stock < 0) {
+        alert('El stock actual no puede ser negativo.');
+        return;
+    }
+    if (maxStock <= minStock) {
+        alert('El stock máximo debe ser mayor que el stock mínimo.');
+        return;
+    }
+    if (reorder < minStock || reorder > maxStock) {
+        alert('El punto de reorden debe estar entre el stock mínimo y el máximo.');
+        return;
+    }
+
     const invData = {
         id: id,
-        epp_id: document.getElementById('invEppId').value,
-        stock: document.getElementById('invStock').value,
-        min_stock: document.getElementById('invMinStock').value,
-        max_stock: document.getElementById('invMaxStock').value,
-        reorder_point: document.getElementById('invReorder').value
+        epp_id: eppId,
+        stock: stock,
+        min_stock: minStock,
+        max_stock: maxStock,
+        reorder_point: reorder
     };
 
     try {
@@ -1281,17 +1641,21 @@ async function saveInventory() {
             body: JSON.stringify(invData)
         });
 
+        const data = await response.json().catch(() => ({}));
+
         if (response.ok) {
-            alert(isUpdate ? 'Inventario actualizado' : 'Inventario creado');
+            alert(isUpdate ? 'Inventario actualizado exitosamente' : 'Inventario procesado exitosamente');
             closeModal('addEppModal');
+            document.getElementById('addEppForm').reset();
             renderInventoryTable();
+            // Si hay un dashboard, también actualizarlo
+            if (document.getElementById('totalWorkers')) loadDashboardStats();
         } else {
-            const err = await response.json();
-            alert('Error: ' + err.message);
+            alert('Error: ' + (data.message || 'Error desconocido'));
         }
     } catch (e) {
         console.error(e);
-        alert('Error de conexión');
+        alert('Error de conexión con el servidor');
     }
 }
 
@@ -1337,7 +1701,7 @@ window.deleteInventory = async function (id) {
 };
 
 // -------------------------------------------------------------------------
-// CRUD DE USUARIOS
+// USERS CRUD
 // -------------------------------------------------------------------------
 
 window.prepareAddUser = function () {
@@ -1351,21 +1715,61 @@ async function saveUser() {
     const isUpdate = id !== '';
     const url = isUpdate ? 'backend/api/users/update.php' : 'backend/api/users/create.php';
 
-    const name = document.getElementById('userNameInput').value;
-    const lastName = document.getElementById('userLastNameInput').value;
-    const email = document.getElementById('userEmailInput').value;
+    const name = document.getElementById('userNameInput').value.trim();
+    const lastName = document.getElementById('userLastNameInput').value.trim();
+    const email = document.getElementById('userEmailInput').value.trim();
     const password = document.getElementById('userPasswordInput').value;
     const confirmPassword = document.getElementById('userPasswordConfirm').value;
     const role = document.getElementById('userRoleSelect').value;
     const status = document.getElementById('userStatusSelect').value;
+
+    // Validaciones frontend coherentes con BD
+    if (!name || name.length > 100) {
+        alert('El nombre es obligatorio y no puede exceder 100 caracteres.');
+        return;
+    }
+    if (!lastName || lastName.length > 100) {
+        alert('El apellido es obligatorio y no puede exceder 100 caracteres.');
+        return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+        alert('Debe ingresar un correo electrónico válido.');
+        return;
+    }
+    if (email.length > 150) {
+        alert('El correo no puede exceder 150 caracteres.');
+        return;
+    }
 
     if (!isUpdate && !password) {
         alert('La contraseña es obligatoria para nuevos usuarios');
         return;
     }
 
-    if (password && password !== confirmPassword) {
-        alert('Las contraseñas no coinciden');
+    if (password) {
+        if (password.length < 8) {
+            alert('La contraseña debe tener al menos 8 caracteres.');
+            return;
+        }
+        if (!/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
+            alert('La contraseña debe contener al menos una mayúscula y un número.');
+            return;
+        }
+        if (password !== confirmPassword) {
+            alert('Las contraseñas no coinciden');
+            return;
+        }
+    }
+
+    if (!['1', '2'].includes(role)) {
+        alert('Debe seleccionar un rol válido.');
+        return;
+    }
+
+    if (!['ACTIVO', 'INACTIVO'].includes(status)) {
+        alert('Debe seleccionar un estado válido.');
         return;
     }
 
@@ -1404,7 +1808,7 @@ async function saveUser() {
     }
 }
 
-// Reemplazar el antiguo addNewUser con el gancho (hook) saveUser
+// Replace old addNewUser with saveUser hook
 window.addNewUser = saveUser;
 
 const addUserForm = document.getElementById('addUserForm');
@@ -1445,7 +1849,7 @@ async function deleteUser(userId) {
 
             if (response.ok) {
                 alert('Usuario eliminado exitosamente');
-                renderUsersTable(); // Recargar tabla desde la BD
+                renderUsersTable(); // Reload table from DB
             } else {
                 const err = await response.json();
                 alert('Error al eliminar: ' + (err.message || 'Error desconocido'));
@@ -1458,7 +1862,7 @@ async function deleteUser(userId) {
 }
 
 // -------------------------------------------------------------------------
-// CRUD DE TRABAJADORES
+// WORKERS CRUD
 // -------------------------------------------------------------------------
 
 window.prepareAddWorker = async function () {
@@ -1500,23 +1904,114 @@ async function loadWorkerSelects() {
 
 async function saveWorker() {
     const id = document.getElementById('workerId').value;
-    const docNumber = document.getElementById('docNumber').value;
+    const docNumber = document.getElementById('docNumber').value.trim();
     const dbId = id || docNumber;
     const isUpdate = id !== '';
     const url = isUpdate ? 'backend/api/workers/update.php' : 'backend/api/workers/create.php';
 
+    // Validaciones frontend coherentes con BD
+    const docType = document.getElementById('docType').value;
+    if (!docNumber) {
+        alert('El número de documento es obligatorio.');
+        return;
+    }
+    // Validar formato de documento según tipo (BD: VARCHAR(20))
+    if (docNumber.length > 20) {
+        alert('El número de documento no puede exceder 20 caracteres.');
+        return;
+    }
+    // Para CC, CE, TI: solo dígitos; para NIT: dígitos y guiones; PAS: alfanumérico
+    if (['CC', 'CE', 'TI'].includes(docType) && !/^\d+$/.test(docNumber)) {
+        alert(`Para ${docType === 'CC' ? 'Cédula' : docType === 'CE' ? 'Cédula de Extranjería' : 'Tarjeta de Identidad'}, el documento debe contener solo números.`);
+        return;
+    }
+    if (docType === 'NIT' && !/^[\d-]+$/.test(docNumber)) {
+        alert('El NIT debe contener solo números y guiones.');
+        return;
+    }
+
+    const name = document.getElementById('workerName').value.trim();
+    const lastName = document.getElementById('workerLastName').value.trim();
+    if (!name || name.length > 100) {
+        alert('El nombre es obligatorio y no puede exceder 100 caracteres.');
+        return;
+    }
+    if (!lastName || lastName.length > 100) {
+        alert('El apellido es obligatorio y no puede exceder 100 caracteres.');
+        return;
+    }
+
+    const email = document.getElementById('workerEmail').value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+        alert('Debe ingresar un correo electrónico válido.');
+        return;
+    }
+    if (email.length > 100) {
+        alert('El correo no puede exceder 100 caracteres.');
+        return;
+    }
+
+    const phone = document.getElementById('workerPhone').value.trim();
+    // BD: VARCHAR(15), validar solo dígitos y longitud
+    if (!phone || !/^\d+$/.test(phone)) {
+        alert('El teléfono debe contener solo números.');
+        return;
+    }
+    if (phone.length > 15 || phone.length < 7) {
+        alert('El teléfono debe tener entre 7 y 15 dígitos.');
+        return;
+    }
+
+    const address = document.getElementById('workerAddress') ? document.getElementById('workerAddress').value.trim() : '';
+    if (!address || address.length > 200) {
+        alert('La dirección es obligatoria y no puede exceder 200 caracteres.');
+        return;
+    }
+
+    const startDate = document.getElementById('workerStartDate').value;
+    if (!startDate) {
+        alert('La fecha de ingreso es obligatoria.');
+        return;
+    }
+    const startDateObj = new Date(startDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (startDateObj > today) {
+        alert('La fecha de ingreso no puede ser mayor a la fecha actual.');
+        return;
+    }
+
+    const positionId = document.getElementById('workerPosition').value;
+    if (!positionId) {
+        alert('Debe seleccionar un cargo.');
+        return;
+    }
+
+    const rh = document.getElementById('workerRh') ? document.getElementById('workerRh').value : 'O+';
+    if (!rh || !['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].includes(rh)) {
+        alert('Debe seleccionar un tipo sanguíneo válido.');
+        return;
+    }
+
+    const sex = document.getElementById('workerSex') ? document.getElementById('workerSex').value : 'MASCULINO';
+    if (!sex || !['MASCULINO', 'FEMENINO', 'OTRO'].includes(sex)) {
+        alert('Debe seleccionar un sexo válido.');
+        return;
+    }
+
     const workerData = {
         id: dbId,
-        doc_type: document.getElementById('docType').value,
-        name: document.getElementById('workerName').value,
-        lastName: document.getElementById('workerLastName').value,
-        position_id: document.getElementById('workerPosition').value,
-        startDate: document.getElementById('workerStartDate').value,
-        phone: document.getElementById('workerPhone').value,
-        email: document.getElementById('workerEmail').value,
-        address: document.getElementById('workerAddress') ? document.getElementById('workerAddress').value : '',
-        rh: document.getElementById('workerRh') ? document.getElementById('workerRh').value : 'O+',
-        sex: document.getElementById('workerSex') ? document.getElementById('workerSex').value : 'MASCULINO',
+        doc_type: docType,
+        name: name,
+        lastName: lastName,
+        position_id: positionId,
+        startDate: startDate,
+        phone: phone,
+        email: email,
+        address: address,
+        rh: rh,
+        sex: sex,
         arl_id: document.getElementById('workerArl') ? document.getElementById('workerArl').value : '',
         eps_id: document.getElementById('workerEps') ? document.getElementById('workerEps').value : ''
     };
@@ -1543,7 +2038,7 @@ async function saveWorker() {
     }
 }
 
-// Reemplazar el antiguo addNewWorker
+// Replace old addNewWorker
 window.addNewWorker = saveWorker;
 
 const addWorkerForm = document.getElementById('addWorkerForm');
@@ -1717,36 +2212,146 @@ window.deleteRisk = async function (riskId) {
 };
 
 
-function generateReport(type) {
+async function generateReport(type) {
+    // Cargar datos si no están disponibles
+    if (type === 'workers' && (!workers || workers.length === 0)) {
+        await renderWorkersTable();
+    }
+    if (type === 'inventory' && (!invList || invList.length === 0)) {
+        await renderInventoryTable();
+    }
+    if (type === 'risks' && (!risks || risks.length === 0)) {
+        await renderRisksTable();
+    }
+
     let reportContent = '';
+    let reportTitle = '';
 
     switch (type) {
         case 'workers':
-            reportContent = `REPORTE DE TRABAJADORES\n\n`;
-            workers.forEach(w => {
-                reportContent += `${w.id} - ${w.name} ${w.lastName} - ${w.position}\n`;
-            });
+            reportTitle = 'REPORTE DE TRABAJADORES';
+            reportContent = `${reportTitle}\nFecha: ${new Date().toLocaleDateString('es-ES')}\n\n`;
+            if (workers && workers.length > 0) {
+                workers.forEach(w => {
+                    reportContent += `${w.id} - ${w.name} ${w.lastName} - ${w.position || 'Sin cargo'} - ${w.startDate || 'Sin fecha'}\n`;
+                });
+            } else {
+                reportContent += 'No hay trabajadores registrados.\n';
+            }
             break;
         case 'inventory':
-            reportContent = `REPORTE DE INVENTARIO\n\n`;
-            eppInventory.forEach(i => {
-                reportContent += `${i.id} - ${i.name} - Stock: ${i.stock} - Estado: ${i.status}\n`;
-            });
+            reportTitle = 'REPORTE DE INVENTARIO EPP';
+            reportContent = `${reportTitle}\nFecha: ${new Date().toLocaleDateString('es-ES')}\n\n`;
+            if (invList && invList.length > 0) {
+                invList.forEach(i => {
+                    reportContent += `${i.id} - ${i.name} - Stock: ${i.stock} - Mín: ${i.minStock} - Máx: ${i.maxStock} - Estado: ${i.status}\n`;
+                });
+            } else {
+                reportContent += 'No hay inventario registrado.\n';
+            }
             break;
         case 'risks':
-            reportContent = `REPORTE DE RIESGOS\n\n`;
-            risks.forEach(r => {
-                reportContent += `${r.id} - ${r.name} - Nivel: ${r.level}\n`;
-            });
+            reportTitle = 'REPORTE DE RIESGOS';
+            reportContent = `${reportTitle}\nFecha: ${new Date().toLocaleDateString('es-ES')}\n\n`;
+            if (risks && risks.length > 0) {
+                risks.forEach(r => {
+                    reportContent += `${r.id} - ${r.name} - Tipo: ${r.type} - Nivel: ${r.level} - Prob: ${r.probability} - Sev: ${r.severity}\n`;
+                });
+            } else {
+                reportContent += 'No hay riesgos registrados.\n';
+            }
             break;
+        default:
+            alert('Tipo de reporte no válido.');
+            return;
     }
 
-    alert('Reporte generado:\n\n' + reportContent);
-    // En producción, se generaría un PDF o Excel
+    // Mostrar en ventana nueva para mejor visualización
+    const reportWindow = window.open('', '_blank', 'width=800,height=600');
+    reportWindow.document.write(`
+        <html>
+            <head><title>${reportTitle}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; white-space: pre-wrap; }
+                h1 { color: #2563eb; }
+            </style>
+            </head>
+            <body>
+                <h1>${reportTitle}</h1>
+                <pre>${reportContent}</pre>
+                <button onclick="window.print()">🖨️ Imprimir</button>
+                <button onclick="document.execCommand('selectAll'); document.execCommand('copy'); alert('Copiado al portapapeles')">📋 Copiar</button>
+            </body>
+        </html>
+    `);
+    reportWindow.document.close();
 }
 
-function viewReport(type) {
-    alert(`Viendo reporte de ${type} - Funcionalidad en desarrollo`);
+async function viewReport(type) {
+    // Cargar datos necesarios
+    if (!invList || invList.length === 0) await renderInventoryTable();
+    if (!risks || risks.length === 0) await renderRisksTable();
+    if (!eppList || eppList.length === 0) await renderEppTable();
+
+    let reportData = [];
+    let reportTitle = '';
+
+    switch (type) {
+        case 'assignedEpp':
+            reportTitle = 'EPP Asignados';
+            // Nota: La tabla tab_trabajadores_epp existe pero no hay endpoint para leerla aún
+            // Por ahora mostramos inventario con stock > 0
+            reportData = invList.filter(i => i.stock > 0).map(i => `${i.name} - Stock: ${i.stock}`);
+            break;
+        case 'expiredEpp':
+            reportTitle = 'EPP Vencidos';
+            const today = new Date();
+            reportData = eppList.filter(e => {
+                const expDate = new Date(e.exp_date);
+                return expDate < today;
+            }).map(e => `${e.name} - Vencimiento: ${e.exp_date}`);
+            break;
+        case 'highRisks':
+            reportTitle = 'Riesgos Altos';
+            reportData = risks.filter(r => r.level === 'ALTO' || r.level === 'MUY ALTO')
+                .map(r => `${r.name} - Nivel: ${r.level} - Tipo: ${r.type}`);
+            break;
+        case 'medicalExams':
+            reportTitle = 'Exámenes Médicos';
+            // Nota: No hay tabla de exámenes médicos en BD, mostramos trabajadores activos como placeholder
+            reportData = workers.filter(w => !w.fecha_retiro_trabajador).map(w => `${w.name} ${w.lastName} - ${w.id}`);
+            break;
+        default:
+            alert('Tipo de reporte no válido.');
+            return;
+    }
+
+    if (reportData.length === 0) {
+        alert(`${reportTitle}\n\nNo hay registros para mostrar.`);
+        return;
+    }
+
+    const reportWindow = window.open('', '_blank', 'width=800,height=600');
+    reportWindow.document.write(`
+        <html>
+            <head><title>${reportTitle}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                h1 { color: #2563eb; }
+                ul { list-style-type: none; padding: 0; }
+                li { padding: 8px; border-bottom: 1px solid #e5e7eb; }
+            </style>
+            </head>
+            <body>
+                <h1>${reportTitle}</h1>
+                <p>Fecha: ${new Date().toLocaleDateString('es-ES')}</p>
+                <p>Total: ${reportData.length}</p>
+                <ul>${reportData.map(item => `<li>${item}</li>`).join('')}</ul>
+                <button onclick="window.print()">🖨️ Imprimir</button>
+            </body>
+        </html>
+    `);
+    reportWindow.document.close();
 }
 
 window.viewRisk = function (id) {
@@ -1754,3 +2359,91 @@ window.viewRisk = function (id) {
     window.editRisk(id);
 };
 
+// Funciones de búsqueda/filtrado básico (sin necesidad de campos adicionales en BD)
+function filterEppTable() {
+    const searchTerm = document.getElementById('searchEpp')?.value.toLowerCase() || '';
+    const tbody = document.getElementById('eppTable');
+    if (!tbody) return;
+    const rows = tbody.querySelectorAll('tr');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+}
+
+function filterInventoryTable() {
+    const searchTerm = document.getElementById('searchInventory')?.value.toLowerCase() || '';
+    const tbody = document.getElementById('inventarioTable');
+    if (!tbody) return;
+    const rows = tbody.querySelectorAll('tr');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+}
+
+function filterWorkersTable() {
+    const searchTerm = document.getElementById('searchWorkers')?.value.toLowerCase() || '';
+    const tbody = document.getElementById('workersTable');
+    if (!tbody) return;
+    const rows = tbody.querySelectorAll('tr');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+}
+
+function filterRisksTable() {
+    const searchTerm = document.getElementById('searchRisks')?.value.toLowerCase() || '';
+    const tbody = document.getElementById('risksTable');
+    if (!tbody) return;
+    const rows = tbody.querySelectorAll('tr');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+}
+
+function filterArlTable() {
+    const searchTerm = document.getElementById('searchArl')?.value.toLowerCase() || '';
+    const tbody = document.getElementById('arlTable');
+    if (!tbody) return;
+    const rows = tbody.querySelectorAll('tr');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+}
+
+function filterEpsTable() {
+    const searchTerm = document.getElementById('searchEps')?.value.toLowerCase() || '';
+    const tbody = document.getElementById('epsTable');
+    if (!tbody) return;
+    const rows = tbody.querySelectorAll('tr');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+}
+
+function filterIpsTable() {
+    const searchTerm = document.getElementById('searchIps')?.value.toLowerCase() || '';
+    const tbody = document.getElementById('ipsTable');
+    if (!tbody) return;
+    const rows = tbody.querySelectorAll('tr');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+}
+
+function filterUsersTable() {
+    const searchTerm = document.getElementById('searchUsers')?.value.toLowerCase() || '';
+    const tbody = document.getElementById('usersTable');
+    if (!tbody) return;
+    const rows = tbody.querySelectorAll('tr');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+}

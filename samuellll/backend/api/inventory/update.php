@@ -28,7 +28,7 @@ if (!empty($data->id)) {
 
         $stmt = $db->prepare($query);
 
-        // Vincular parámetros (Bind)
+        // Bind parameters
         $stmt->bindParam(":id", $data->id);
         $stmt->bindParam(":stock", $data->stock);
         $stmt->bindParam(":min_stock", $data->min_stock);

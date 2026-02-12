@@ -42,7 +42,67 @@ if (
 
         $stmt = $db->prepare($query);
 
-        // Sanear datos
+        // Validaciones backend coherentes con BD (iguales que en create)
+        // Validar formato email (BD: VARCHAR(100) UNIQUE)
+        if (!filter_var($data->email, FILTER_VALIDATE_EMAIL)) {
+            http_response_code(400);
+            echo json_encode(["message" => "Correo electrónico inválido."]);
+            exit;
+        }
+        if (strlen($data->email) > 100) {
+            http_response_code(400);
+            echo json_encode(["message" => "El correo no puede exceder 100 caracteres."]);
+            exit;
+        }
+
+        // Validar teléfono (BD: VARCHAR(15))
+        if (!preg_match('/^\d+$/', $data->phone) || strlen($data->phone) > 15 || strlen($data->phone) < 7) {
+            http_response_code(400);
+            echo json_encode(["message" => "Teléfono inválido. Debe contener solo números (7-15 dígitos)."]);
+            exit;
+        }
+
+        // Validar sexo (BD: CHECK IN ('MASCULINO','FEMENINO','OTRO'))
+        $allowedSex = ['MASCULINO', 'FEMENINO', 'OTRO'];
+        if (!in_array($data->sex, $allowedSex)) {
+            http_response_code(400);
+            echo json_encode(["message" => "Sexo inválido."]);
+            exit;
+        }
+
+        // Validar fecha ingreso <= hoy
+        $startDate = new DateTime($data->startDate);
+        $today = new DateTime();
+        if ($startDate > $today) {
+            http_response_code(400);
+            echo json_encode(["message" => "La fecha de ingreso no puede ser mayor a la fecha actual."]);
+            exit;
+        }
+
+        // Validar longitudes según BD
+        if (strlen($data->name) > 100 || strlen($data->lastName) > 100) {
+            http_response_code(400);
+            echo json_encode(["message" => "Nombre o apellido excede la longitud permitida (100 caracteres)."]);
+            exit;
+        }
+        if (strlen($data->address) > 200) {
+            http_response_code(400);
+            echo json_encode(["message" => "La dirección excede la longitud permitida (200 caracteres)."]);
+            exit;
+        }
+
+        // Verificar si el email ya existe para otro trabajador
+        $checkEmail = $db->prepare("SELECT id_trabajador FROM tab_trabajadores WHERE correo_trabajador = :email AND id_trabajador != :id");
+        $checkEmail->bindParam(":email", $data->email);
+        $checkEmail->bindParam(":id", $data->id);
+        $checkEmail->execute();
+        if ($checkEmail->rowCount() > 0) {
+            http_response_code(409);
+            echo json_encode(["message" => "El correo electrónico ya está registrado para otro trabajador."]);
+            exit;
+        }
+
+        // Sanitize
         $data->id = htmlspecialchars(strip_tags($data->id));
         $data->name = htmlspecialchars(strip_tags($data->name));
         $data->lastName = htmlspecialchars(strip_tags($data->lastName));
@@ -54,7 +114,7 @@ if (
         $data->rh = htmlspecialchars(strip_tags($data->rh));
         $data->sex = htmlspecialchars(strip_tags($data->sex));
 
-        // Vincular parámetros (Bind)
+        // Bind
         $stmt->bindParam(":id", $data->id);
         $stmt->bindParam(":name", $data->name);
         $stmt->bindParam(":lastname", $data->lastName);
@@ -83,6 +143,14 @@ if (
 
         http_response_code(200);
         echo json_encode(["message" => "Trabajador actualizado exitosamente."]);
+    } catch (PDOException $e) {
+        if ($e->getCode() == 23505) { // Unique violation (email duplicado)
+            http_response_code(409);
+            echo json_encode(["message" => "El correo electrónico ya está registrado."]);
+        } else {
+            http_response_code(503);
+            echo json_encode(["message" => "Error al actualizar: " . $e->getMessage()]);
+        }
     } catch (Exception $e) {
         http_response_code(503);
         echo json_encode(["message" => "Error al actualizar: " . $e->getMessage()]);

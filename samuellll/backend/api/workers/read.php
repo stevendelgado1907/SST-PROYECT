@@ -12,31 +12,30 @@ $database = new Database();
 $db = $database->getConnection();
 
 try {
-    // Consultar trabajadores con cargo, ARL y EPS
-    // Usando LEFT JOIN para asegurar que los trabajadores se listen incluso si aún no tienen ARL/EPS asignados
+    // Query workers with position, ARL, and EPS
+    // Using LEFT JOIN to ensure workers are listed even if they don't have ARL/EPS assigned yet
+    // Query using the professional PostgreSQL function with explicit columns
     $query = "SELECT 
-                t.id_trabajador,
-                t.tipo_documento,
-                t.nom_trabajador,
-                t.ape_trabajador,
-                t.fecha_ingreso_trabajador,
-                t.tel_trabajador,
-                t.correo_trabajador,
-                t.direccion_trabajador,
-                t.rh_trabajador,
-                t.sexo_trabajador,
-                t.id_cargo,
-                c.nom_cargo,
-                a.id_arl,
-                a.nom_arl,
-                e.id_eps,
-                e.nom_eps
-              FROM tab_trabajadores t
-              JOIN tab_cargos c ON t.id_cargo = c.id_cargo
-              LEFT JOIN tab_trabajadores_arl_eps tae ON t.id_trabajador = tae.id_trabajador AND tae.fecha_retiro IS NULL
-              LEFT JOIN tab_arl a ON tae.id_arl = a.id_arl
-              LEFT JOIN tab_eps e ON tae.id_eps = e.id_eps
-              ORDER BY t.nom_trabajador ASC";
+                id_trabajador,
+                tipo_documento,
+                id_cargo,
+                nom_trabajador,
+                ape_trabajador,
+                tel_trabajador,
+                correo_trabajador,
+                direccion_trabajador,
+                rh_trabajador,
+                sexo_trabajador,
+                fecha_ingreso_trabajador,
+                fecha_retiro_trabajador,
+                fecha_registro,
+                nom_cargo,
+                id_arl,
+                nom_arl,
+                id_eps,
+                nom_eps
+              FROM fn_tab_trabajadores_select()
+              ORDER BY fecha_registro DESC, nom_trabajador ASC";
               
     $stmt = $db->prepare($query);
     $stmt->execute();
@@ -44,7 +43,7 @@ try {
     $workers = [];
     
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        // Mapear al formato esperado por main.js
+        // Map to format expected by main.js
         $workers[] = [
             "id" => $row['id_trabajador'],
             "doc_type" => $row['tipo_documento'],
@@ -53,6 +52,8 @@ try {
             "position" => $row['nom_cargo'],
             "position_id" => $row['id_cargo'],
             "startDate" => $row['fecha_ingreso_trabajador'],
+            "fecha_retiro_trabajador" => $row['fecha_retiro_trabajador'] ?? null,
+            "fecha_registro" => $row['fecha_registro'] ?? null,
             "phone" => $row['tel_trabajador'],
             "email" => $row['correo_trabajador'],
             "address" => $row['direccion_trabajador'] ?? '',

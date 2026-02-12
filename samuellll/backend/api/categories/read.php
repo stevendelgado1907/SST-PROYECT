@@ -12,7 +12,13 @@ $database = new Database();
 $db = $database->getConnection();
 
 try {
-    $query = "SELECT id_categoria, nom_categoria FROM tab_categorias ORDER BY nom_categoria ASC";
+    // Query using the professional PostgreSQL function with explicit columns
+    $query = "SELECT 
+                id_categoria, 
+                nom_categoria, 
+                descripcion_categoria 
+              FROM fn_tab_categorias_select() 
+              ORDER BY nom_categoria ASC";
     $stmt = $db->prepare($query);
     $stmt->execute();
     
@@ -20,7 +26,8 @@ try {
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $items[] = [
             "id" => $row['id_categoria'],
-            "name" => $row['nom_categoria']
+            "name" => $row['nom_categoria'],
+            "description" => $row['descripcion_categoria']
         ];
     }
     echo json_encode($items);

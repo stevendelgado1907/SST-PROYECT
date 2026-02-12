@@ -5,7 +5,7 @@ ini_set('display_errors', 1);
 
 echo "<h1>Prueba de Conexión y Datos</h1>";
 
-require_once 'config/Database.php';
+require_once 'backend/config/Database.php';
 
 try {
     $database = new Database();
@@ -18,21 +18,21 @@ try {
         exit;
     }
 
-    // Comprobar Marcas
+    // Check Brands
     $query = "SELECT count(*) as count FROM tab_marcas";
     $stmt = $db->prepare($query);
     $stmt->execute();
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     echo "<p>Marcas encontradas: <strong>" . $row['count'] . "</strong></p>";
 
-    // Comprobar Categorías
+    // Check Categories
     $query = "SELECT count(*) as count FROM tab_categorias";
     $stmt = $db->prepare($query);
     $stmt->execute();
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     echo "<p>Categorías encontradas: <strong>" . $row['count'] . "</strong></p>";
 
-    // Comprobar Cantidad de EPP
+    // Check EPP Count
     $query = "SELECT count(*) as count FROM tab_epp";
     $stmt = $db->prepare($query);
     $stmt->execute();

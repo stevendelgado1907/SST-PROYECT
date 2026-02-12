@@ -75,7 +75,7 @@
             </li>
         </ul>
         </ul>
-        <a href="backend/api/auth/logout.php" class="logout-btn" onclick="localStorage.removeItem('user');">
+        <a href="backend/api/auth/logout.php" class="logout-btn" onclick="return confirmLogout(event);">
             <i>🚪</i> Cerrar Sesión
         </a>
     </div>
@@ -132,6 +132,19 @@
 
     <!-- Scripts -->
     <script src="assets/js/main.js"></script>
+    <script>
+        // Cargar datos necesarios para reportes al entrar a la página
+        document.addEventListener('DOMContentLoaded', async function () {
+            // Cargar datos para que los reportes funcionen
+            if (typeof renderWorkersTable === 'function') await renderWorkersTable();
+            if (typeof renderInventoryTable === 'function') await renderInventoryTable();
+            if (typeof renderRisksTable === 'function') await renderRisksTable();
+            if (typeof renderEppTable === 'function') await renderEppTable();
+            
+            // Actualizar estadísticas de las cards
+            if (typeof updateStatistics === 'function') updateStatistics();
+        });
+    </script>
 </body>
 
 </html>

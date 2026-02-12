@@ -14,49 +14,88 @@ AuthMiddleware::validate();
 $database = new Database();
 $db = $database->getConnection();
 
-$data = json_decode(file_get_contents("php://input"));
+// Mantener robustez ante JSON inválido
+$raw = file_get_contents("php://input");
+$data = json_decode($raw);
 
-if (
-    !empty($data->epp_id)
-) {
+if (json_last_error() !== JSON_ERROR_NONE || $data === null) {
+    http_response_code(400);
+    echo json_encode(["message" => "Datos JSON inválidos o vacíos."]);
+    exit();
+}
+
+if (!empty($data->epp_id)) {
     try {
         // Defaults if not provided
         $stock = (int)(isset($data->stock) ? $data->stock : 0);
         $min_stock = (int)(isset($data->min_stock) ? $data->min_stock : 10);
         $max_stock = (int)(isset($data->max_stock) ? $data->max_stock : 100);
         $reorder = (int)(isset($data->reorder_point) ? $data->reorder_point : 20);
+        $eppId = (int)$data->epp_id;
 
-        $qMax = "SELECT COALESCE(MAX(id_inventario), 0) + 1 as next_id FROM inventario_epp";
-        $st = $db->query($qMax);
-        $nextInvId = $st->fetch(PDO::FETCH_ASSOC)['next_id'];
+        // Validaciones de dominio antes de tocar la base de datos
+        if ($stock < 0) {
+            http_response_code(400);
+            echo json_encode(["message" => "El stock actual no puede ser negativo."]);
+            exit();
+        }
+        if ($max_stock <= $min_stock) {
+            http_response_code(400);
+            echo json_encode(["message" => "El stock máximo debe ser mayor que el stock mínimo."]);
+            exit();
+        }
+        if ($reorder < $min_stock || $reorder > $max_stock) {
+            http_response_code(400);
+            echo json_encode(["message" => "El punto de reorden debe estar entre el stock mínimo y el máximo."]);
+            exit();
+        }
 
-        $query = "INSERT INTO inventario_epp (id_inventario, id_epp, stock_actual, stock_minimo, stock_maximo, punto_reorden)
-                  VALUES (:inv_id, :id_epp, :stock, :min_stock, :max_stock, :reorder)";
+        // Asegurar existencia y sincronización de la secuencia, igual que en create EPP
+        try {
+            $db->exec("CREATE SEQUENCE IF NOT EXISTS seq_inventario");
+            $db->query("SELECT setval('seq_inventario', GREATEST(COALESCE((SELECT MAX(id_inventario) FROM inventario_epp), 0) + 1, 1), false)");
+        } catch (PDOException $seqEx) {
+            error_log("Error inicializando secuencia de inventario: " . $seqEx->getMessage());
+        }
+
+        // Check if exists
+        $checkQ = "SELECT id_inventario FROM inventario_epp WHERE id_epp = :id_epp";
+        $stCheck = $db->prepare($checkQ);
+        $stCheck->bindParam(":id_epp", $eppId, PDO::PARAM_INT);
+        $stCheck->execute();
+
+        if ($stCheck->rowCount() > 0) {
+            // Update instead of creating duplicate
+            $invId = $stCheck->fetch(PDO::FETCH_ASSOC)['id_inventario'];
+            $query = "UPDATE inventario_epp 
+                      SET stock_actual = :stock, stock_minimo = :min_stock, 
+                          stock_maximo = :max_stock, punto_reorden = :reorder,
+                          ultima_actualizacion = NOW()
+                      WHERE id_inventario = :inv_id";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(":inv_id", $invId, PDO::PARAM_INT);
+        } else {
+            // Create new usando la misma secuencia que el alta automática de EPP
+            $seq = $db->query("SELECT nextval('seq_inventario') AS next_id");
+            $nextInvId = $seq->fetch(PDO::FETCH_ASSOC)['next_id'];
+
+            $query = "INSERT INTO inventario_epp (id_inventario, id_epp, stock_actual, stock_minimo, stock_maximo, punto_reorden)
+                      VALUES (:inv_id, :id_epp, :stock, :min_stock, :max_stock, :reorder)";
+            $stmt = $db->prepare($query);
+            $stmt->bindParam(":inv_id", $nextInvId, PDO::PARAM_INT);
+            $stmt->bindParam(":id_epp", $eppId, PDO::PARAM_INT);
+        }
         
-        $stmt = $db->prepare($query);
-        $stmt->bindParam(":inv_id", $nextInvId);
-    
-        // Sanitize and bind
-        $eppId = (int)htmlspecialchars(strip_tags($data->epp_id));
-        $stmt->bindParam(":id_epp", $eppId);
-        $stmt->bindParam(":stock", $stock);
-        $stmt->bindParam(":min_stock", $min_stock);
-        $stmt->bindParam(":max_stock", $max_stock);
-        $stmt->bindParam(":reorder", $reorder);
+        $stmt->bindParam(":stock", $stock, PDO::PARAM_INT);
+        $stmt->bindParam(":min_stock", $min_stock, PDO::PARAM_INT);
+        $stmt->bindParam(":max_stock", $max_stock, PDO::PARAM_INT);
+        $stmt->bindParam(":reorder", $reorder, PDO::PARAM_INT);
     
         if ($stmt->execute()) {
             http_response_code(201);
-            echo json_encode(["message" => "Item de inventario creado exitosamente."]);
+            echo json_encode(["message" => "Inventario procesado exitosamente."]);
         } else {
-            throw new Exception("No se pudo crear el item de inventario.");
-        }
-    } catch (PDOException $e) {
-        if ($e->getCode() == 23000) { // Duplicate entry
-             http_response_code(409);
-             echo json_encode(["message" => "Este EPP ya existe en el inventario."]);
-        } else {
-            http_response_code(503);
-            echo json_encode(["message" => "Error de base de datos: " . $e->getMessage()]);
+            throw new Exception("No se pudo procesar el inventario.");
         }
     } catch (Exception $e) {
         http_response_code(503);

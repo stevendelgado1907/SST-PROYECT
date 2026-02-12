@@ -19,28 +19,27 @@ $db = $database->getConnection();
 
 try {
     // Select all fields from tab_epp + JOIN brands and categories for names
+    // Query using the professional PostgreSQL function with explicit columns
     $query = "SELECT 
-                e.id_epp, 
-                e.id_marca, 
-                e.id_categoria, 
-                e.talla_epp, 
-                e.nom_epp, 
-                e.tipo_epp, 
-                e.referencia_epp, 
-                e.fabricante_epp, 
-                e.nro_serie_epp, 
-                e.descripcion_epp, 
-                e.fecha_fabricacion_epp, 
-                e.fecha_vencimiento_epp, 
-                e.fecha_compra_epp, 
-                e.vida_util_meses, 
-                e.estado_epp,
-                m.nom_marca, 
-                c.nom_categoria 
-              FROM tab_epp e
-              LEFT JOIN tab_marcas m ON e.id_marca = m.id_marca
-              LEFT JOIN tab_categorias c ON e.id_categoria = c.id_categoria
-              ORDER BY e.id_epp DESC";
+                id_epp, 
+                id_marca, 
+                id_categoria, 
+                talla_epp, 
+                nom_epp, 
+                tipo_epp, 
+                referencia_epp, 
+                fabricante_epp, 
+                nro_serie_epp, 
+                descripcion_epp, 
+                fecha_fabricacion_epp, 
+                fecha_vencimiento_epp, 
+                fecha_compra_epp, 
+                vida_util_meses, 
+                estado_epp,
+                nom_marca, 
+                nom_categoria 
+              FROM fn_tab_epp_select()
+              ORDER BY id_epp DESC";
 
     $stmt = $db->prepare($query);
     $stmt->execute();

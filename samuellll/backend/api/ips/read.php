@@ -11,8 +11,15 @@ $database = new Database();
 $db = $database->getConnection();
 
 try {
-    $query = "SELECT id_ips as id, nom_ips as name, direccion_ips as address, 
-              tel_ips as phone, correo_ips as email FROM tab_ips ORDER BY nom_ips ASC";
+    // Query using the professional PostgreSQL function with explicit columns
+    $query = "SELECT 
+                id_ips as id, 
+                nom_ips as name, 
+                direccion_ips as address, 
+                tel_ips as phone, 
+                correo_ips as email 
+              FROM fn_tab_ips_select() 
+              ORDER BY nom_ips ASC";
     $stmt = $db->prepare($query);
     $stmt->execute();
     

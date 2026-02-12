@@ -75,7 +75,7 @@
             </li>
         </ul>
         </ul>
-        <a href="backend/api/auth/logout.php" class="logout-btn" onclick="localStorage.removeItem('user');">
+        <a href="backend/api/auth/logout.php" class="logout-btn" onclick="return confirmLogout(event);">
             <i>🚪</i> Cerrar Sesión
         </a>
     </div>
@@ -102,7 +102,10 @@
             <div class="card">
                 <div class="card-header">
                     <h3>Inventario de EPP</h3>
-                    <button class="btn btn-primary" onclick="prepareAddInventory()">➕ Agregar EPP</button>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="searchInventory" placeholder="🔍 Buscar por nombre, categoría..." style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; flex: 1; max-width: 300px;" onkeyup="filterInventoryTable()">
+                        <button class="btn btn-primary" onclick="prepareAddInventory()">➕ Agregar EPP</button>
+                    </div>
                 </div>
                 <div class="table-container">
                     <table>
@@ -135,7 +138,7 @@
                 <h3>Agregar Nuevo EPP</h3>
                 <button class="close-modal" onclick="closeModal('addEppModal')">×</button>
             </div>
-            <form id="addEppForm">
+            <form id="addEppForm" onsubmit="event.preventDefault(); saveInventory();">
                 <input type="hidden" id="invId">
                 <div class="form-group">
                     <label>Equipo EPP</label>
@@ -173,6 +176,15 @@
 
     <!-- Scripts -->
     <script src="assets/js/main.js"></script>
+    <script>
+        // Refuerzo: si por algún motivo falla el init global,
+        // este llamado asegura que el inventario siempre se renderice.
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof renderInventoryTable === 'function') {
+                renderInventoryTable();
+            }
+        });
+    </script>
 </body>
 
 </html>

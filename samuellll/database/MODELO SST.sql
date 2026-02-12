@@ -92,7 +92,7 @@ CREATE TABLE tab_categorias(
 
 CREATE TABLE tab_riesgos(
     id_riesgo INTEGER NOT NULL,
-    nom_riesgo VARCHAR(100) NOT NULL UNIQUE,
+    nom_riesgo VARCHAR(100) NOT NULL,
     tipo_riesgo VARCHAR(100) NOT NULL,
     descripcion_riesgo TEXT NOT NULL,
     nivel_de_riesgo VARCHAR(50) NOT NULL,
@@ -210,7 +210,7 @@ CREATE TABLE tab_trabajadores_epp(
     observaciones TEXT,
     PRIMARY KEY (id_trabajador_epp),
     FOREIGN KEY (id_trabajador) REFERENCES tab_trabajadores(id_trabajador),
-    FOREIGN KEY (id_epp) REFERENCES tab_epp(id_epp),
+    FOREIGN KEY (id_epp) REFERENCES tab_epp(id_epp) ON DELETE CASCADE,
     CHECK (estado_epp IN ('ASIGNADO', 'EN_USO', 'DEVUELTO', 'DANADO', 'PERDIDO'))
 );
 
@@ -224,7 +224,7 @@ CREATE TABLE inventario_epp(
     punto_reorden INTEGER NOT NULL DEFAULT 20,
     ultima_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id_inventario),
-    FOREIGN KEY (id_epp) REFERENCES tab_epp(id_epp),
+    FOREIGN KEY (id_epp) REFERENCES tab_epp(id_epp) ON DELETE CASCADE,
     CHECK (stock_actual >= 0),
     CHECK (stock_minimo >= 0),
     CHECK (stock_maximo > stock_minimo),

@@ -75,7 +75,7 @@
             </li>
         </ul>
         </ul>
-        <a href="backend/api/auth/logout.php" class="logout-btn" onclick="localStorage.removeItem('user');">
+        <a href="backend/api/auth/logout.php" class="logout-btn" onclick="return confirmLogout(event);">
             <i>🚪</i> Cerrar Sesión
         </a>
     </div>
@@ -103,7 +103,10 @@
             <div class="card">
                 <div class="card-header">
                     <h3>Gestión de Equipos EPP</h3>
-                    <button class="btn btn-primary" onclick="prepareAddEpp()">➕ Nuevo Equipo</button>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="searchEpp" placeholder="🔍 Buscar por nombre, referencia..." style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; flex: 1; max-width: 300px;" onkeyup="filterEppTable()">
+                        <button class="btn btn-primary" onclick="prepareAddEpp()">➕ Nuevo Equipo</button>
+                    </div>
                 </div>
                 <div class="table-container">
                     <table>
@@ -135,7 +138,7 @@
                 <h3>Agregar Nuevo Equipo</h3>
                 <button class="close-modal" onclick="closeModal('addEquipmentModal')">×</button>
             </div>
-            <form id="addEquipmentForm">
+            <form id="addEquipmentForm" onsubmit="event.preventDefault(); saveEpp();">
                 <input type="hidden" id="eppId">
                 <div class="form-row">
                     <div class="form-group">

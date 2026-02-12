@@ -40,7 +40,7 @@ if (!empty($data->id)) {
         }
     } catch (Exception $e) {
         http_response_code(503);
-        // Comprobar si hay violación de restricción de integridad
+        // Check for integrity constraint violation
         if (strpos($e->getMessage(), 'Integrity constraint violation') !== false) {
              echo json_encode(["message" => "No se puede eliminar: El trabajador tiene registros asociados."]);
         } else {

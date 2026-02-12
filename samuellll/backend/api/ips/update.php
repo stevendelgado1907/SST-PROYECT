@@ -30,6 +30,51 @@ foreach ($required as $f) {
 }
 
 try {
+    // Validaciones backend coherentes con BD
+    // Validar teléfono (BD: VARCHAR(15))
+    if (!preg_match('/^\d+$/', $data->phone) || strlen($data->phone) > 15 || strlen($data->phone) < 7) {
+        http_response_code(400);
+        echo json_encode(["message" => "Teléfono inválido. Debe contener solo números (7-15 dígitos)."]);
+        exit;
+    }
+
+    // Validar email si se proporciona (BD: VARCHAR(100))
+    if (!empty($data->email)) {
+        if (!filter_var($data->email, FILTER_VALIDATE_EMAIL)) {
+            http_response_code(400);
+            echo json_encode(["message" => "Correo electrónico inválido."]);
+            exit;
+        }
+        if (strlen($data->email) > 100) {
+            http_response_code(400);
+            echo json_encode(["message" => "El correo no puede exceder 100 caracteres."]);
+            exit;
+        }
+    }
+
+    // Validar longitudes según BD
+    if (strlen($data->name) > 100) {
+        http_response_code(400);
+        echo json_encode(["message" => "El nombre no puede exceder 100 caracteres."]);
+        exit;
+    }
+    if (strlen($data->address) > 200) {
+        http_response_code(400);
+        echo json_encode(["message" => "La dirección no puede exceder 200 caracteres."]);
+        exit;
+    }
+
+    // Verificar si el nombre ya existe para otra IPS
+    $checkName = $db->prepare("SELECT id_ips FROM tab_ips WHERE nom_ips = :name AND id_ips != :id");
+    $checkName->bindParam(":name", $data->name);
+    $checkName->bindParam(":id", $data->id);
+    $checkName->execute();
+    if ($checkName->rowCount() > 0) {
+        http_response_code(400);
+        echo json_encode(["message" => "El nombre de IPS ya está registrado para otra entidad."]);
+        exit;
+    }
+
     $q = "UPDATE tab_ips SET nom_ips = :name, direccion_ips = :address, tel_ips = :phone, correo_ips = :email WHERE id_ips = :id";
     $stmt = $db->prepare($q);
     

@@ -12,19 +12,18 @@ $database = new Database();
 $db = $database->getConnection();
 
 try {
-    // Consulta alineada con MODELO SST.sql y las expectativas de main.js
+    // Query using the professional PostgreSQL function with explicit columns
     $query = "SELECT 
-                u.id_usuario, 
-                u.nombre_usuario, 
-                u.apellido_usuario, 
-                u.correo_usuario, 
-                u.estado_usuario,
-                u.ultimo_acceso,
-                u.id_rol,
-                r.nombre_rol 
-              FROM tab_usuarios u
-              JOIN tab_roles r ON u.id_rol = r.id_rol
-              ORDER BY u.id_usuario DESC";
+                id_usuario, 
+                correo_usuario, 
+                id_rol, 
+                estado_usuario, 
+                nombre_usuario, 
+                apellido_usuario, 
+                nombre_rol, 
+                ultimo_acceso 
+              FROM fn_tab_usuarios_select() 
+              ORDER BY id_usuario DESC";
               
     $stmt = $db->prepare($query);
     $stmt->execute();
@@ -32,15 +31,15 @@ try {
     $users = [];
     
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        // Mapear al formato esperado por main.js
+        // Map to format expected by main.js
         $users[] = [
             "id" => $row['id_usuario'],
-            "name" => $row['nombre_usuario'], // Primer nombre
+            "name" => $row['nombre_usuario'], // First name
             "lastName" => $row['apellido_usuario'],
-            "fullName" => $row['nombre_usuario'] . ' ' . $row['apellido_usuario'], // Para mostrar
+            "fullName" => $row['nombre_usuario'] . ' ' . $row['apellido_usuario'], // For display
             "email" => $row['correo_usuario'],
             "role" => $row['nombre_rol'],
-            "role_id" => $row['id_rol'], // Para el selector de edición
+            "role_id" => $row['id_rol'], // For edit select
             "status" => $row['estado_usuario'],
             "lastAccess" => $row['ultimo_acceso']
         ];

@@ -75,7 +75,7 @@
             </li>
         </ul>
         </ul>
-        <a href="backend/api/auth/logout.php" class="logout-btn" onclick="localStorage.removeItem('user');">
+        <a href="backend/api/auth/logout.php" class="logout-btn" onclick="return confirmLogout(event);">
             <i>🚪</i> Cerrar Sesión
         </a>
     </div>
@@ -102,8 +102,10 @@
             <div class="card">
                 <div class="card-header">
                     <h3>Gestión de Usuarios</h3>
-                    <button class="btn btn-primary" id="addUserBtn" onclick="prepareAddUser()">➕ Nuevo
-                        Usuario</button>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="searchUsers" placeholder="🔍 Buscar por nombre, correo..." style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; flex: 1; max-width: 300px;" onkeyup="filterUsersTable()">
+                        <button class="btn btn-primary" id="addUserBtn" onclick="prepareAddUser()">➕ Nuevo Usuario</button>
+                    </div>
                 </div>
                 <div class="table-container">
                     <table>

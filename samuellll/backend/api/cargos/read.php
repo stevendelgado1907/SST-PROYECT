@@ -11,7 +11,16 @@ $database = new Database();
 $db = $database->getConnection();
 
 try {
-    $query = "SELECT id_cargo as id, nom_cargo as name FROM tab_cargos ORDER BY nom_cargo ASC";
+    // Query using the professional PostgreSQL function with explicit columns
+    $query = "SELECT 
+                id_cargo as id, 
+                nom_cargo as name,
+                descripcion_cargo as description,
+                nivel_riesgo_cargo as risk_level,
+                salario_base as salary,
+                departamento as department
+              FROM fn_tab_cargos_select() 
+              ORDER BY name ASC";
     $stmt = $db->prepare($query);
     $stmt->execute();
     

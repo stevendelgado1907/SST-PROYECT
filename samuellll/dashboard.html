@@ -78,7 +78,7 @@
             </li>
         </ul>
         </ul>
-        <a href="backend/api/auth/logout.php" class="logout-btn" onclick="localStorage.removeItem('user');">
+        <a href="backend/api/auth/logout.php" class="logout-btn" onclick="return confirmLogout(event);">
             <i>🚪</i> Cerrar Sesión
         </a>
     </div>
@@ -110,23 +110,26 @@
             </div>
 
             <div class="stats-grid">
-                <div class="stat-card">
+                <div class="stat-card" onclick="window.location.href='trabajadores.html'" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                     <div class="stat-number" id="totalWorkers">0</div>
                     <div class="stat-title">Trabajadores Activos</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" onclick="window.location.href='inventario.html'" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                     <div class="stat-number" id="totalEpp">0</div>
                     <div class="stat-title">EPP Disponibles</div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card" onclick="window.location.href='riesgos.html'" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                     <div class="stat-number" id="totalRisks">0</div>
                     <div class="stat-title">Riesgos Identificados</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="expiringSoon">0</div>
-                    <div class="stat-title">EPP por Vencer</div>
+                <div class="stat-card" onclick="window.location.href='epp.html'" style="cursor: pointer; transition: transform 0.2s; border-left: 4px solid #f59e0b;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" id="expiringCard">
+                    <div class="stat-number" id="expiringSoon" style="color: #f59e0b;">0</div>
+                    <div class="stat-title">EPP por Vencer (30 días)</div>
                 </div>
             </div>
+            
+            <!-- Alertas visuales -->
+            <div id="dashboardAlerts" style="margin-top: 20px;"></div>
 
             <div class="card">
                 <div class="card-header">

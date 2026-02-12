@@ -28,6 +28,40 @@ try {
     $st = $db->query($qMax);
     $nextId = $st->fetch(PDO::FETCH_ASSOC)['next_id'];
 
+    // Validaciones backend coherentes con BD
+    // Validar teléfono (BD: VARCHAR(15))
+    if (!preg_match('/^\d+$/', $data->phone) || strlen($data->phone) > 15 || strlen($data->phone) < 7) {
+        http_response_code(400);
+        echo json_encode(["message" => "Teléfono inválido. Debe contener solo números (7-15 dígitos)."]);
+        exit;
+    }
+
+    // Validar email si se proporciona (BD: VARCHAR(100))
+    if (!empty($data->email)) {
+        if (!filter_var($data->email, FILTER_VALIDATE_EMAIL)) {
+            http_response_code(400);
+            echo json_encode(["message" => "Correo electrónico inválido."]);
+            exit;
+        }
+        if (strlen($data->email) > 100) {
+            http_response_code(400);
+            echo json_encode(["message" => "El correo no puede exceder 100 caracteres."]);
+            exit;
+        }
+    }
+
+    // Validar longitudes según BD
+    if (strlen($data->name) > 100) {
+        http_response_code(400);
+        echo json_encode(["message" => "El nombre no puede exceder 100 caracteres."]);
+        exit;
+    }
+    if (strlen($data->address) > 200) {
+        http_response_code(400);
+        echo json_encode(["message" => "La dirección no puede exceder 200 caracteres."]);
+        exit;
+    }
+
     $q = "INSERT INTO tab_eps (id_eps, nom_eps, direccion_eps, tel_eps, correo_eps) 
           VALUES (:id, :name, :address, :phone, :email)";
     $stmt = $db->prepare($q);

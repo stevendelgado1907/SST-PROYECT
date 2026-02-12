@@ -75,7 +75,7 @@
             </li>
         </ul>
         </ul>
-        <a href="backend/api/auth/logout.php" class="logout-btn" onclick="localStorage.removeItem('user');">
+        <a href="backend/api/auth/logout.php" class="logout-btn" onclick="return confirmLogout(event);">
             <i>🚪</i> Cerrar Sesión
         </a>
     </div>
@@ -109,6 +109,7 @@
                             <h4>ARL Registradas</h4>
                             <button class="btn btn-primary btn-sm" onclick="prepareAddArl()">➕ Nueva ARL</button>
                         </div>
+                        <input type="text" id="searchArl" placeholder="🔍 Buscar ARL..." style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 100%; margin-bottom: 12px;" onkeyup="filterArlTable()">
                         <div class="table-container">
                             <table>
                                 <thead>
@@ -128,6 +129,7 @@
                             <h4>EPS Registradas</h4>
                             <button class="btn btn-primary btn-sm" onclick="prepareAddEps()">➕ Nueva EPS</button>
                         </div>
+                        <input type="text" id="searchEps" placeholder="🔍 Buscar EPS..." style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 100%; margin-bottom: 12px;" onkeyup="filterEpsTable()">
                         <div class="table-container">
                             <table>
                                 <thead>
@@ -147,6 +149,7 @@
                             <h4>IPS Registradas</h4>
                             <button class="btn btn-primary btn-sm" onclick="prepareAddIps()">➕ Nueva IPS</button>
                         </div>
+                        <input type="text" id="searchIps" placeholder="🔍 Buscar IPS..." style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 100%; margin-bottom: 12px;" onkeyup="filterIpsTable()">
                         <div class="table-container">
                             <table>
                                 <thead>

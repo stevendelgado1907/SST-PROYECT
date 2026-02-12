@@ -18,7 +18,7 @@ $data = json_decode(file_get_contents("php://input"));
 
 if (!empty($data->id)) {
     try {
-        // Evitar eliminarse a sí mismo (verificar el token contra el id sería bueno, pero por ahora eliminación simple)
+        // Prevent deleting self (checking token vs id would be good, but for now simple delete)
         
         $query = "DELETE FROM tab_usuarios WHERE id_usuario = :id";
         $stmt = $db->prepare($query);

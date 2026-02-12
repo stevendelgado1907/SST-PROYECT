@@ -12,7 +12,14 @@ $database = new Database();
 $db = $database->getConnection();
 
 try {
-    $query = "SELECT id_marca, nom_marca FROM tab_marcas ORDER BY nom_marca ASC";
+    // Query using the professional PostgreSQL function with explicit columns
+    $query = "SELECT 
+                id_marca, 
+                nom_marca, 
+                proveedor_marca, 
+                contacto_proveedor 
+              FROM fn_tab_marcas_select() 
+              ORDER BY nom_marca ASC";
     $stmt = $db->prepare($query);
     $stmt->execute();
     
@@ -20,7 +27,9 @@ try {
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $items[] = [
             "id" => $row['id_marca'],
-            "name" => $row['nom_marca']
+            "name" => $row['nom_marca'],
+            "provider" => $row['proveedor_marca'],
+            "contact" => $row['contacto_proveedor']
         ];
     }
     echo json_encode($items);

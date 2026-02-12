@@ -796,8 +796,104 @@ tr:hover td {
         transform: translateY(0);
         opacity: 1;
     }
-}
-
+}/ *   R i s k   M a t r i x   S t y l e s   * /  
+ . r i s k - m a t r i x   {  
+         d i s p l a y :   f l e x ;  
+         f l e x - d i r e c t i o n :   c o l u m n ;  
+         a l i g n - i t e m s :   c e n t e r ;  
+         w i d t h :   1 0 0 % ;  
+         m a r g i n :   2 0 p x   0 ;  
+ }  
+  
+ . m a t r i x - g r i d   {  
+         d i s p l a y :   g r i d ;  
+         g r i d - t e m p l a t e - c o l u m n s :   8 0 p x   r e p e a t ( 4 ,   1 f r ) ;  
+         g r i d - t e m p l a t e - r o w s :   r e p e a t ( 4 ,   6 0 p x ) ;  
+         g a p :   4 p x ;  
+         w i d t h :   1 0 0 % ;  
+         m a x - w i d t h :   6 0 0 p x ;  
+         m a r g i n :   1 0 p x   0 ;  
+         f o n t - s i z e :   0 . 8 r e m ;  
+ }  
+  
+ . m a t r i x - h e a d e r   {  
+         f o n t - w e i g h t :   b o l d ;  
+         t e x t - a l i g n :   c e n t e r ;  
+         d i s p l a y :   f l e x ;  
+         a l i g n - i t e m s :   c e n t e r ;  
+         j u s t i f y - c o n t e n t :   c e n t e r ;  
+         b a c k g r o u n d :   # f 1 f 5 f 9 ;  
+         b o r d e r - r a d i u s :   4 p x ;  
+ }  
+  
+ . m a t r i x - l a b e l   {  
+         f o n t - w e i g h t :   b o l d ;  
+         t e x t - a l i g n :   r i g h t ;  
+         p a d d i n g - r i g h t :   1 0 p x ;  
+         d i s p l a y :   f l e x ;  
+         a l i g n - i t e m s :   c e n t e r ;  
+         j u s t i f y - c o n t e n t :   f l e x - e n d ;  
+         b a c k g r o u n d :   # f 1 f 5 f 9 ;  
+         b o r d e r - r a d i u s :   4 p x ;  
+ }  
+  
+ . m a t r i x - c e l l   {  
+         d i s p l a y :   f l e x ;  
+         a l i g n - i t e m s :   c e n t e r ;  
+         j u s t i f y - c o n t e n t :   c e n t e r ;  
+         f o n t - w e i g h t :   b o l d ;  
+         c o l o r :   w h i t e ;  
+         b o r d e r - r a d i u s :   4 p x ;  
+         f o n t - s i z e :   1 . 2 r e m ;  
+         c u r s o r :   d e f a u l t ;  
+         t r a n s i t i o n :   t r a n s f o r m   0 . 2 s ;  
+ }  
+  
+ . m a t r i x - c e l l : h o v e r   {  
+         t r a n s f o r m :   s c a l e ( 1 . 0 5 ) ;  
+ }  
+  
+ . m a t r i x - c e l l . l o w   {  
+         b a c k g r o u n d - c o l o r :   # 2 e c c 7 1 ;  
+         / *   V e r d e   * /  
+ }  
+  
+ . m a t r i x - c e l l . m e d i u m   {  
+         b a c k g r o u n d - c o l o r :   # f 1 c 4 0 f ;  
+         / *   A m a r i l l o   * /  
+ }  
+  
+ . m a t r i x - c e l l . h i g h   {  
+         b a c k g r o u n d - c o l o r :   # e 6 7 e 2 2 ;  
+         / *   N a r a n j a   * /  
+ }  
+  
+ . m a t r i x - c e l l . v e r y - h i g h   {  
+         b a c k g r o u n d - c o l o r :   # e 7 4 c 3 c ;  
+         / *   R o j o   * /  
+ }  
+  
+ . m a t r i x - c e l l . e x t r e m e   {  
+         b a c k g r o u n d - c o l o r :   # c 0 3 9 2 b ;  
+         / *   R o j o   O s c u r o   * /  
+ }  
+  
+ . m a t r i x - a x i s - x   {  
+         t e x t - a l i g n :   c e n t e r ;  
+         f o n t - w e i g h t :   b o l d ;  
+         m a r g i n - t o p :   1 0 p x ;  
+ }  
+  
+ . m a t r i x - a x i s - y   {  
+         t r a n s f o r m :   r o t a t e ( - 9 0 d e g ) ;  
+         p o s i t i o n :   a b s o l u t e ;  
+         l e f t :   2 0 p x ;  
+         t o p :   5 0 % ;  
+         f o n t - w e i g h t :   b o l d ;  
+         d i s p l a y :   n o n e ;  
+         / *   O c u l t o   p o r   s i m p l i c i d a d   d e   p o s i c i o n a m i e n t o   * /  
+ }  
+ 
 /* Risk Management Styles */
 
 .risk-dashboard-grid {
@@ -814,21 +910,10 @@ tr:hover td {
     gap: 16px;
 }
 
-.stat-card.total {
-    border-left: 4px solid var(--primary);
-}
-
-.stat-card.high {
-    border-left: 4px solid #ef4444;
-}
-
-.stat-card.medium {
-    border-left: 4px solid #f59e0b;
-}
-
-.stat-card.low {
-    border-left: 4px solid #10b981;
-}
+.stat-card.total { border-left: 4px solid var(--primary); }
+.stat-card.high { border-left: 4px solid #ef4444; }
+.stat-card.medium { border-left: 4px solid #f59e0b; }
+.stat-card.low { border-left: 4px solid #10b981; }
 
 .stat-icon {
     font-size: 1.5rem;
@@ -857,161 +942,102 @@ tr:hover td {
 }
 
 .risk-matrix-container h4 {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     color: var(--text-primary);
     text-align: center;
-    font-weight: 600;
 }
 
 .risk-matrix {
     display: grid;
-    /* Default spacing, can be overridden by specific modes */
+    grid-template-columns: 50px repeat(4, 1fr);
+    grid-template-rows: 30px repeat(3, 1fr);
     gap: 4px;
-    margin-bottom: 20px;
-}
-
-.risk-matrix.mode-5x5 {
-    display: grid;
-    grid-template-columns: 80px repeat(5, 1fr);
-    grid-template-rows: 40px repeat(5, 1fr);
-    gap: 4px;
-}
-
-.matrix-header-empty {
-    grid-column: 1 / 2;
-    grid-row: 1 / 2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    color: var(--text-secondary);
-    font-weight: bold;
-    background: #f8fafc;
-    border-radius: 4px;
+    margin-bottom: 16px;
 }
 
 .matrix-header-x {
-    display: flex;
-    align-items: center;
-    justify-content: center;
     text-align: center;
     font-size: 0.75rem;
     font-weight: 600;
     color: var(--text-secondary);
-    padding: 4px;
-    background: #f8fafc;
-    border-radius: 4px;
+    align-self: end;
+    padding-bottom: 4px;
 }
 
 .matrix-header-y {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    padding-right: 12px;
+    padding-right: 8px;
     font-size: 0.75rem;
     font-weight: 600;
     color: var(--text-secondary);
-    background: #f8fafc;
-    border-radius: 4px;
 }
 
 .matrix-cell {
     position: relative;
-    min-height: 60px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+    height: 80px;
+    border-radius: 4px;
+    transition: transform 0.2s, box-shadow 0.2s;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    color: rgba(0, 0, 0, 0.7);
-    font-size: 1.2rem;
     background-color: #f1f5f9;
-    border: 1px solid transparent;
 }
 
 .matrix-cell:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transform: scale(1.02);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     z-index: 10;
 }
 
-/* Matrix Colors (Dynamic) */
-.matrix-cell.low {
-    background-color: #d1fae5;
-    /* Emerald 100 */
-    color: #065f46;
-    border-color: #34d399;
+.matrix-count {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    background: rgba(255,255,255,0.8);
+    padding: 2px 8px;
+    border-radius: 12px;
 }
 
-.matrix-cell.medium {
-    background-color: #fef3c7;
-    /* Amber 100 */
-    color: #92400e;
-    border-color: #fbbf24;
-}
-
-.matrix-cell.high {
-    background-color: #ffedd5;
-    /* Orange 100 */
-    color: #9a3412;
-    border-color: #fb923c;
-}
-
-.matrix-cell.extreme {
-    background-color: #fee2e2;
-    /* Red 100 */
-    color: #991b1b;
-    border-color: #f87171;
-}
+/* Matrix Colors */
+.matrix-cell.low { background-color: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); }
+.matrix-cell.medium { background-color: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); }
+.matrix-cell.high { background-color: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); }
+.matrix-cell.very-high { background-color: rgba(185, 28, 28, 0.3); border: 1px solid rgba(185, 28, 28, 0.5); }
 
 /* Legend */
 .matrix-legend {
     display: flex;
-    flex-wrap: wrap;
     justify-content: center;
-    gap: 20px;
-    margin-top: 10px;
-    padding-top: 15px;
-    border-top: 1px solid var(--border);
+    gap: 16px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
 }
 
 .legend-item {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.85rem;
-    color: var(--text-secondary);
+    gap: 6px;
 }
 
 .dot {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
 }
 
-.dot.low {
-    background-color: #34d399;
-}
-
-.dot.medium {
-    background-color: #fbbf24;
-}
-
-.dot.high {
-    background-color: #fb923c;
-}
-
-.dot.extreme {
-    background-color: #f87171;
-}
+.dot.low { background-color: #10b981; }
+.dot.medium { background-color: #f59e0b; }
+.dot.high { background-color: #ef4444; }
+.dot.very-high { background-color: #b91c1c; }
 
 @media (max-width: 1100px) {
     .risk-dashboard-grid {
         grid-template-columns: 1fr;
     }
-
+    
     .risk-stats-container {
         grid-template-columns: repeat(4, 1fr);
     }
@@ -1021,25 +1047,23 @@ tr:hover td {
     .risk-stats-container {
         grid-template-columns: repeat(2, 1fr);
     }
-
-    .risk-matrix.mode-5x5 {
-        grid-template-columns: 60px repeat(5, 1fr);
-        font-size: 0.8em;
+    
+    .risk-matrix {
+        grid-template-columns: 40px repeat(4, 1fr);
     }
-
-    .matrix-header-x,
-    .matrix-header-y {
+    
+    .matrix-header-x {
         font-size: 0.65rem;
     }
-
+    
     .matrix-cell {
-        min-height: 40px;
-        font-size: 1rem;
+        height: 60px;
     }
 }
+
 
 .status-warning {
     background: rgba(245, 158, 11, 0.1);
-    color: #b45309;
-    /* Amber 700 */
+    color: #b45309; /* Amber 700 */
 }
+

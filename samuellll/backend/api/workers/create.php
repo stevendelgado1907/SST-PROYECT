@@ -30,7 +30,7 @@ if (
     !empty($data->sex)
 ) {
     try {
-        // Comprobar si el trabajador existe
+        // Check if worker exists
         $checkQuery = "SELECT id_trabajador FROM tab_trabajadores WHERE id_trabajador = :id";
         $checkStmt = $db->prepare($checkQuery);
         $checkStmt->bindParam(':id', $data->id);
@@ -53,7 +53,71 @@ if (
 
         $stmt = $db->prepare($query);
 
-        // Sanear datos
+        // Validaciones backend coherentes con BD
+        // Validar tipo documento (BD: CHECK IN ('CC','CE','NIT','PAS','TI'))
+        $allowedDocTypes = ['CC', 'CE', 'NIT', 'PAS', 'TI'];
+        if (!in_array($data->doc_type, $allowedDocTypes)) {
+            http_response_code(400);
+            echo json_encode(["message" => "Tipo de documento inválido."]);
+            exit;
+        }
+
+        // Validar longitud documento (BD: VARCHAR(20))
+        if (strlen($data->id) > 20) {
+            http_response_code(400);
+            echo json_encode(["message" => "El número de documento no puede exceder 20 caracteres."]);
+            exit;
+        }
+
+        // Validar formato email (BD: VARCHAR(100) UNIQUE)
+        if (!filter_var($data->email, FILTER_VALIDATE_EMAIL)) {
+            http_response_code(400);
+            echo json_encode(["message" => "Correo electrónico inválido."]);
+            exit;
+        }
+        if (strlen($data->email) > 100) {
+            http_response_code(400);
+            echo json_encode(["message" => "El correo no puede exceder 100 caracteres."]);
+            exit;
+        }
+
+        // Validar teléfono (BD: VARCHAR(15))
+        if (!preg_match('/^\d+$/', $data->phone) || strlen($data->phone) > 15 || strlen($data->phone) < 7) {
+            http_response_code(400);
+            echo json_encode(["message" => "Teléfono inválido. Debe contener solo números (7-15 dígitos)."]);
+            exit;
+        }
+
+        // Validar sexo (BD: CHECK IN ('MASCULINO','FEMENINO','OTRO'))
+        $allowedSex = ['MASCULINO', 'FEMENINO', 'OTRO'];
+        if (!in_array($data->sex, $allowedSex)) {
+            http_response_code(400);
+            echo json_encode(["message" => "Sexo inválido."]);
+            exit;
+        }
+
+        // Validar fecha ingreso <= hoy
+        $startDate = new DateTime($data->startDate);
+        $today = new DateTime();
+        if ($startDate > $today) {
+            http_response_code(400);
+            echo json_encode(["message" => "La fecha de ingreso no puede ser mayor a la fecha actual."]);
+            exit;
+        }
+
+        // Validar longitudes según BD
+        if (strlen($data->name) > 100 || strlen($data->lastName) > 100) {
+            http_response_code(400);
+            echo json_encode(["message" => "Nombre o apellido excede la longitud permitida (100 caracteres)."]);
+            exit;
+        }
+        if (strlen($data->address) > 200) {
+            http_response_code(400);
+            echo json_encode(["message" => "La dirección excede la longitud permitida (200 caracteres)."]);
+            exit;
+        }
+
+        // Sanitize
         $data->id = htmlspecialchars(strip_tags($data->id));
         $data->doc_type = htmlspecialchars(strip_tags($data->doc_type));
         $data->name = htmlspecialchars(strip_tags($data->name));
@@ -66,7 +130,7 @@ if (
         $data->rh = htmlspecialchars(strip_tags($data->rh));
         $data->sex = htmlspecialchars(strip_tags($data->sex));
 
-        // Vincular parámetros (Bind)
+        // Bind
         $stmt->bindParam(":id", $data->id);
         $stmt->bindParam(":doc_type", $data->doc_type);
         $stmt->bindParam(":name", $data->name);
@@ -95,6 +159,14 @@ if (
 
         http_response_code(201);
         echo json_encode(["message" => "Trabajador creado exitosamente."]);
+    } catch (PDOException $e) {
+        if ($e->getCode() == 23505) { // Unique violation (email o id duplicado)
+            http_response_code(409);
+            echo json_encode(["message" => "El correo electrónico o documento ya está registrado."]);
+        } else {
+            http_response_code(503);
+            echo json_encode(["message" => "Error al crear trabajador: " . $e->getMessage()]);
+        }
     } catch (Exception $e) {
         http_response_code(503);
         echo json_encode(["message" => "Error al crear trabajador: " . $e->getMessage()]);

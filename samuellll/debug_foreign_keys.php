@@ -8,14 +8,14 @@ $db = $database->getConnection();
 echo "--- CHECKING FOREIGN KEYS ---\n";
 
 try {
-    // Comprobar Marcas
+    // Check Brands
     $query = "SELECT count(*) as count FROM tab_marcas";
     $stmt = $db->prepare($query);
     $stmt->execute();
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     echo "Brands (tab_marcas) count: " . $row['count'] . "\n";
     
-    // Comprobar Categorías
+    // Check Categories
     $query = "SELECT count(*) as count FROM tab_categorias";
     $stmt = $db->prepare($query);
     $stmt->execute();
